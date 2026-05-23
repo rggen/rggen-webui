@@ -59,14 +59,25 @@ export function BitFieldRow({ bitField, onChange, onDelete }: Props) {
             ))}
           </select>
         </td>
-        <td className={`${td} w-20`}>
-          <input
-            className={`w-full outline-none font-mono ${noInitVal ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-transparent'}`}
-            value={bitField.initialValue}
-            placeholder={noInitVal ? '-' : '0'}
-            disabled={noInitVal}
-            onChange={e => onChange({ initialValue: e.target.value })}
-          />
+        <td className={`${td} w-24`}>
+          <div className="flex items-center gap-1">
+            <input
+              className={`w-full outline-none font-mono ${noInitVal ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-transparent'}`}
+              value={bitField.initialValue}
+              placeholder={noInitVal ? '-' : '0'}
+              disabled={noInitVal}
+              onChange={e => onChange({ initialValue: e.target.value })}
+            />
+            {!noInitVal && (
+              <input
+                type="checkbox"
+                title="Parameterize initial value (outputs as { default: value })"
+                checked={bitField.parameterize}
+                onChange={e => onChange({ parameterize: e.target.checked })}
+                className="accent-red-700 shrink-0"
+              />
+            )}
+          </div>
         </td>
         <td className={td}>
           <input

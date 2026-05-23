@@ -30,8 +30,30 @@ export default function App() {
     <div className="h-screen flex flex-col bg-white text-gray-900">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-red-200 shrink-0">
-        <img src="/rggen.png" alt="RgGen" className="h-8" />
+        <div className="flex items-center gap-3">
+          <img src="/rggen.png" alt="RgGen" className="h-8" />
+          <a
+            href="https://github.com/rggen/rggen"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-gray-400 hover:text-red-700"
+          >GitHub</a>
+          <a
+            href="https://github.com/rggen/rggen/wiki"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-gray-400 hover:text-red-700"
+          >Wiki</a>
+        </div>
         <div className="flex items-center gap-2">
+          <button
+            className="px-3 py-1 border border-gray-300 hover:border-red-400 text-gray-500 hover:text-red-700 text-sm rounded"
+            onClick={() => {
+              if (confirm('Load sample data? Current data will be replaced.')) state.loadSample();
+            }}
+          >
+            Load Sample
+          </button>
           <button
             className="px-3 py-1 border border-gray-300 hover:border-red-400 text-gray-500 hover:text-red-700 text-sm rounded"
             onClick={() => {
@@ -85,6 +107,8 @@ export default function App() {
         onDeleteRegister={regId => state.deleteRegister(state.activeBlockId, regId)}
         onUpdateRegister={(regId, updates) => state.updateRegister(state.activeBlockId, regId, updates)}
         onToggleExpanded={regId => state.toggleExpanded(state.activeBlockId, regId)}
+        onExpandAll={() => state.expandAll(state.activeBlockId)}
+        onCollapseAll={() => state.collapseAll(state.activeBlockId)}
         onAddBitField={regId => state.addBitField(state.activeBlockId, regId)}
         onDeleteBitField={(regId, bfId) => state.deleteBitField(state.activeBlockId, regId, bfId)}
         onUpdateBitField={(regId, bfId, updates) => state.updateBitField(state.activeBlockId, regId, bfId, updates)}

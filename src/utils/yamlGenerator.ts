@@ -17,8 +17,10 @@ function buildBitFieldLine(bf: BitField, indent: string): string {
   if (bf.name) parts.push(`name: ${bf.name}`);
   parts.push(`bit_assignment: ${buildBitAssignment(bf)}`);
   parts.push(`type: ${bf.type}`);
-  if (!NO_INITIAL_VALUE_TYPES.has(bf.type) && bf.initialValue !== '')
-    parts.push(`initial_value: ${bf.initialValue}`);
+  if (!NO_INITIAL_VALUE_TYPES.has(bf.type) && bf.initialValue !== '') {
+    const val = bf.parameterize ? `{ default: ${bf.initialValue} }` : bf.initialValue;
+    parts.push(`initial_value: ${val}`);
+  }
   if (bf.reference) parts.push(`reference: ${bf.reference}`);
   if (bf.comment) parts.push(`comment: '${bf.comment}'`);
   return `${indent}- { ${parts.join(', ')} }`;
@@ -37,8 +39,10 @@ function buildRegisterType(reg: Register): string | null {
 
 function buildRegisterSize(reg: Register): string | null {
   if (!reg.arraySize) return null;
-  if (!reg.arrayStep) return reg.arraySize;
-  return `[${reg.arraySize}, {step: ${reg.arrayStep}}]`;
+  const dims = reg.arraySize.split(',').map(s => s.trim()).filter(Boolean);
+  if (dims.length === 1 && !reg.arrayStep) return dims[0];
+  const parts = [...dims, ...(reg.arrayStep ? [`{step: ${reg.arrayStep}}`] : [])];
+  return `[${parts.join(', ')}]`;
 }
 
 function generateRegisterYaml(reg: Register, indent: string): string {

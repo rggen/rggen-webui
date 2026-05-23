@@ -14,10 +14,29 @@ interface Props {
 
 const td = 'px-2 py-1 border-r border-gray-200 text-sm';
 
+function splitDims(arraySize: string): string[] {
+  if (!arraySize.trim()) return [];
+  return arraySize.split(',').map(s => s.trim());
+}
+
 export function RegisterRow({
   register, onToggle, onChange, onDelete,
   onAddQualifier, onDeleteQualifier, onUpdateQualifier,
 }: Props) {
+  const dims = splitDims(register.arraySize);
+
+  const updateDim = (i: number, val: string) => {
+    const next = dims.map((d, j) => j === i ? val : d);
+    onChange({ arraySize: next.join(', ') });
+  };
+
+  const removeDim = (i: number) => {
+    const next = dims.filter((_, j) => j !== i);
+    onChange({ arraySize: next.join(', '), arrayStep: next.length === 0 ? '' : register.arrayStep });
+  };
+
+  const addDim = () => onChange({ arraySize: [...dims, '0'].join(', ') });
+
   const handleTypeChange = (newType: RegisterType) => {
     const updates: Partial<Register> = { type: newType };
     if (newType === 'indirect') updates.showAdvanced = true;
@@ -88,26 +107,37 @@ export function RegisterRow({
         <tr className="bg-red-50 border-b border-gray-200">
           <td colSpan={7} className="px-6 py-2">
             <div className="flex flex-col gap-2 text-sm">
-              <div className="flex items-center gap-4">
-                <span className="text-gray-600 font-medium w-20">Array:</span>
-                <label className="flex items-center gap-1">
-                  <span className="text-gray-500">Size</span>
-                  <input
-                    className="border border-gray-300 rounded px-2 py-0.5 w-20 focus:outline-none focus:border-red-400"
-                    value={register.arraySize}
-                    placeholder="e.g. 4"
-                    onChange={e => onChange({ arraySize: e.target.value })}
-                  />
-                </label>
-                <label className="flex items-center gap-1">
-                  <span className="text-gray-500">Step</span>
-                  <input
-                    className="border border-gray-300 rounded px-2 py-0.5 w-20 focus:outline-none focus:border-red-400"
-                    value={register.arrayStep}
-                    placeholder="e.g. 8"
-                    onChange={e => onChange({ arrayStep: e.target.value })}
-                  />
-                </label>
+              <div className="flex items-start gap-4">
+                <span className="text-gray-600 font-medium w-20 pt-0.5">Array:</span>
+                <div className="flex flex-col gap-1">
+                  {dims.map((d, i) => (
+                    <div key={i} className="flex items-center gap-1">
+                      <span className="text-gray-400 text-xs w-12">Dim {i}</span>
+                      <input
+                        className="border border-gray-300 rounded px-2 py-0.5 w-20 focus:outline-none focus:border-red-400 font-mono"
+                        value={d}
+                        placeholder="e.g. 4"
+                        onChange={e => updateDim(i, e.target.value)}
+                      />
+                      {i === 0 && (
+                        <>
+                          <span className="text-gray-500 text-xs ml-2">Step</span>
+                          <input
+                            className="border border-gray-300 rounded px-2 py-0.5 w-20 focus:outline-none focus:border-red-400"
+                            value={register.arrayStep}
+                            placeholder="e.g. 8"
+                            onChange={e => onChange({ arrayStep: e.target.value })}
+                          />
+                        </>
+                      )}
+                      <button className="text-gray-400 hover:text-red-600 ml-1" onClick={() => removeDim(i)}>×</button>
+                    </div>
+                  ))}
+                  <button
+                    className="mt-0.5 px-2 py-0.5 text-xs border border-red-300 text-red-700 hover:bg-red-50 rounded"
+                    onClick={addDim}
+                  >+ Add Dim</button>
+                </div>
               </div>
 
               {register.type === 'indirect' && (

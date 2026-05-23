@@ -9,6 +9,8 @@ interface Props {
   onDeleteRegister: (regId: string) => void;
   onUpdateRegister: (regId: string, updates: Partial<Register>) => void;
   onToggleExpanded: (regId: string) => void;
+  onExpandAll: () => void;
+  onCollapseAll: () => void;
   onAddBitField: (regId: string) => void;
   onDeleteBitField: (regId: string, bfId: string) => void;
   onUpdateBitField: (regId: string, bfId: string, updates: Partial<BitField>) => void;
@@ -21,6 +23,7 @@ const th = 'px-2 py-1 text-xs font-medium text-gray-500 text-left border-r borde
 
 export function RegisterTable({
   block, onAddRegister, onDeleteRegister, onUpdateRegister, onToggleExpanded,
+  onExpandAll, onCollapseAll,
   onAddBitField, onDeleteBitField, onUpdateBitField,
   onAddQualifier, onDeleteQualifier, onUpdateQualifier,
 }: Props) {
@@ -62,11 +65,19 @@ export function RegisterTable({
           ))}
         </tbody>
       </table>
-      <div className="px-4 py-2">
+      <div className="px-4 py-2 flex items-center gap-2">
         <button
           className="px-3 py-1 text-sm border border-red-300 text-red-700 hover:bg-red-50 rounded"
           onClick={onAddRegister}
         >+ Add Register</button>
+        <button
+          className="px-3 py-1 text-sm border border-gray-300 text-gray-500 hover:bg-gray-50 rounded"
+          onClick={onExpandAll}
+        >Expand All</button>
+        <button
+          className="px-3 py-1 text-sm border border-gray-300 text-gray-500 hover:bg-gray-50 rounded"
+          onClick={onCollapseAll}
+        >Collapse All</button>
       </div>
     </div>
   );

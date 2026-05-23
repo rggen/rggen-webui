@@ -15,7 +15,7 @@ export const BIT_FIELD_TYPES = [
   'woc', 'wos',
   'w0crs', 'w1crs', 'wcrs',
   'w0src', 'w1src', 'wsrc',
-  'counter', 'reserved', 'custom',
+  'counter', 'reserved',
 ] as const;
 
 export type BitFieldType = typeof BIT_FIELD_TYPES[number];
@@ -38,6 +38,7 @@ export interface BitField {
   width: string;
   type: BitFieldType;
   initialValue: string;
+  parameterize: boolean;
   comment: string;
   reference: string;
   sequenceSize: string;

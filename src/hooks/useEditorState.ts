@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { RegisterBlock, Register, BitField, IndirectQualifier, ProjectConfig } from '../types/rggen';
 import { NO_INITIAL_VALUE_TYPES } from '../types/rggen';
 import { parseBlockYaml, parseConfigYaml } from '../utils/yamlParser';
+import { createSampleBlocks } from '../utils/sampleData';
 
 const STORAGE_KEY = 'rggen-webui-state';
 
@@ -17,6 +18,7 @@ export function newBitField(): BitField {
     width: '1',
     type: 'rw',
     initialValue: '0',
+    parameterize: false,
     comment: '',
     reference: '',
     sequenceSize: '',
@@ -143,6 +145,21 @@ export function useEditorState() {
         : b
     ));
 
+  const expandAll = (blockId: string) =>
+    setBlocks(prev => prev.map(b =>
+      b.id === blockId ? { ...b, registers: b.registers.map(r => ({ ...r, expanded: true })) } : b
+    ));
+
+  const collapseAll = (blockId: string) =>
+    setBlocks(prev => prev.map(b =>
+      b.id === blockId ? { ...b, registers: b.registers.map(r => ({
+        ...r,
+        expanded: false,
+        showAdvanced: false,
+        bitFields: r.bitFields.map(bf => ({ ...bf, showAdvanced: false })),
+      }))} : b
+    ));
+
   // BitField CRUD
   const addBitField = (blockId: string, regId: string) => {
     const bf = newBitField();
@@ -214,6 +231,11 @@ export function useEditorState() {
     setState({ blocks: [initial], activeBlockId: initial.id, config: DEFAULT_CONFIG });
   };
 
+  const loadSample = () => {
+    const blocks = createSampleBlocks();
+    setState({ blocks, activeBlockId: blocks[0].id, config: DEFAULT_CONFIG });
+  };
+
   const importBlockFile = async (files: File | File[]): Promise<void> => {
     const fileList = Array.isArray(files) ? files : [files];
     const allBlocks = (await Promise.all(fileList.map(async f => {
@@ -248,9 +270,9 @@ export function useEditorState() {
     blocks, activeBlock, activeBlockId, config,
     setActiveBlockId, updateConfig,
     addBlock, deleteBlock, updateBlock,
-    addRegister, deleteRegister, updateRegister, toggleExpanded,
+    addRegister, deleteRegister, updateRegister, toggleExpanded, expandAll, collapseAll,
     addBitField, deleteBitField, updateBitField,
     addQualifier, deleteQualifier, updateQualifier,
-    resetState, importBlockFile, importConfigFile,
+    resetState, loadSample, importBlockFile, importConfigFile,
   };
 }

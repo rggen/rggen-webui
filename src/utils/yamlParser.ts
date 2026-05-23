@@ -59,18 +59,32 @@ function parseBitField(v: unknown, path: string): BitField {
   const reference = o.reference !== undefined ? str(o.reference, `${path}.reference`) : '';
   const sequenceSize = ba.sequenceSize;
 
+  let initialValue = noInit ? '' : '0';
+  let parameterize = false;
+  if (o.initial_value !== undefined) {
+    if (typeof o.initial_value === 'object' && !Array.isArray(o.initial_value) && o.initial_value !== null) {
+      const iv = o.initial_value as Record<string, unknown>;
+      checkFields(iv, ['default'], `${path}.initial_value`);
+      initialValue = iv.default !== undefined ? String(iv.default) : '0';
+      parameterize = true;
+    } else {
+      initialValue = String(o.initial_value);
+    }
+  }
+
   return {
     id: crypto.randomUUID(),
-    name:          o.name          !== undefined ? str(o.name,    `${path}.name`)    : '',
-    lsb:           ba.lsb,
-    width:         ba.width,
+    name:         o.name    !== undefined ? str(o.name,    `${path}.name`)    : '',
+    lsb:          ba.lsb,
+    width:        ba.width,
     sequenceSize,
-    sequenceStep:  ba.sequenceStep,
-    type:          type as BitFieldType,
-    initialValue:  o.initial_value !== undefined ? String(o.initial_value) : (noInit ? '' : '0'),
+    sequenceStep: ba.sequenceStep,
+    type:         type as BitFieldType,
+    initialValue,
+    parameterize,
     reference,
-    comment:       o.comment       !== undefined ? str(o.comment, `${path}.comment`) : '',
-    showAdvanced:  reference !== '' || sequenceSize !== '',
+    comment:      o.comment !== undefined ? str(o.comment, `${path}.comment`) : '',
+    showAdvanced: reference !== '' || sequenceSize !== '',
   };
 }
 
@@ -98,12 +112,24 @@ function parseRegisterType(v: unknown, path: string): { type: RegisterType; indi
 function parseRegisterSize(v: unknown, path: string): { arraySize: string; arrayStep: string } {
   if (v === undefined || v === null) return { arraySize: '', arrayStep: '' };
   if (typeof v === 'number') return { arraySize: String(v), arrayStep: '' };
-  if (Array.isArray(v) && v.length === 2) {
-    const size = num(v[0], `${path}[0]`);
-    const stepObj = obj(v[1], `${path}[1]`);
-    checkFields(stepObj, ['step'], `${path}[1]`);
-    const step = stepObj.step !== undefined ? num(stepObj.step, `${path}[1].step`) : 0;
-    return { arraySize: String(size), arrayStep: step ? String(step) : '' };
+  if (Array.isArray(v) && v.length >= 1) {
+    // last element may be {step: N}
+    const last = v[v.length - 1];
+    const hasStep = typeof last === 'object' && last !== null && !Array.isArray(last);
+    const dimElems = hasStep ? v.slice(0, -1) : v;
+
+    if (!dimElems.every(e => typeof e === 'number'))
+      throw new Error(`${path}: size dimensions must be numbers`);
+
+    const arraySize = (dimElems as number[]).join(', ');
+    let arrayStep = '';
+    if (hasStep) {
+      const stepObj = obj(last, `${path}[${v.length - 1}]`);
+      checkFields(stepObj, ['step'], `${path}[${v.length - 1}]`);
+      const step = stepObj.step !== undefined ? num(stepObj.step, `${path}[${v.length - 1}].step`) : 0;
+      arrayStep = step ? String(step) : '';
+    }
+    return { arraySize, arrayStep };
   }
   throw new Error(`${path}: invalid size format`);
 }
