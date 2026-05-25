@@ -60,6 +60,10 @@ export function useRgGenWasm() {
       const outputsB64 = outputsRbValue!.toString();
       const outputs: Record<string, string> = JSON.parse(atob(outputsB64));
 
+      const versionsText = Object.entries(__RGGEN_VERSIONS__)
+        .map(([name, version]) => `${name}: ${version}`)
+        .join('\n');
+
       const zip = new JSZip();
       for (const [filename, content] of Object.entries(outputs)) {
         zip.file(filename, content);
@@ -68,6 +72,7 @@ export function useRgGenWasm() {
       for (const block of blocks) {
         zip.file(`${block.name || 'block'}.yaml`, generateBlockYaml(block));
       }
+      zip.file('VERSIONS', versionsText);
 
       const blob = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(blob);

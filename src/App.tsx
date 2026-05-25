@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import JSZip from 'jszip';
 import { useEditorState } from './hooks/useEditorState';
 import { useRgGenWasm } from './hooks/useRgGenWasm';
@@ -14,10 +14,31 @@ import {
 } from './utils/yamlGenerator';
 import type { SourceLocation } from './utils/yamlGenerator';
 
+const RGGEN_VERSIONS = __RGGEN_VERSIONS__;
+
+function formatVersionsText(): string {
+  return Object.entries(RGGEN_VERSIONS)
+    .map(([name, version]) => `${name}: ${version}`)
+    .join('\n');
+}
+
 export default function App() {
   const state = useEditorState();
   const wasm = useRgGenWasm();
   const [showPreview, setShowPreview] = useState(false);
+  const [showVersions, setShowVersions] = useState(false);
+  const versionsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showVersions) return;
+    const handler = (e: MouseEvent) => {
+      if (versionsRef.current && !versionsRef.current.contains(e.target as Node)) {
+        setShowVersions(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showVersions]);
 
   // Derive highlight location from error — pure computation, no setState needed
   const errorLoc = useMemo<SourceLocation | null>(() => {
@@ -54,6 +75,7 @@ export default function App() {
     for (const block of state.blocks) {
       zip.file(`${block.name || 'block'}.yaml`, generateBlockYaml(block));
     }
+    zip.file('VERSIONS', formatVersionsText());
     const blob = await zip.generateAsync({ type: 'blob' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -88,6 +110,28 @@ export default function App() {
             rel="noopener noreferrer"
             className="text-xs text-gray-400 hover:text-red-700"
           >Wiki</a>
+          <div className="relative" ref={versionsRef}>
+            <button
+              className="text-xs text-gray-400 hover:text-red-700"
+              onClick={() => setShowVersions(v => !v)}
+            >
+              Versions
+            </button>
+            {showVersions && (
+              <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded shadow-md p-3 min-w-max">
+                <table className="text-xs text-gray-700 border-collapse">
+                  <tbody>
+                    {Object.entries(RGGEN_VERSIONS).map(([name, version]) => (
+                      <tr key={name}>
+                        <td className="pr-4 py-0.5 font-mono">{name}</td>
+                        <td className="py-0.5 font-mono text-gray-500">{version}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button
