@@ -1,0 +1,17 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+gem 'ruby_wasm', '~> 2.9'
+gem 'js'
+gem 'base64'
+gem 'racc'
+
+gem 'rggen-c-header', '~> 0.7.0'
+gem 'rggen-core', '~> 0.36.1'
+gem 'rggen-default-register-map', '~> 0.36.1'
+gem 'rggen-markdown', '~> 0.28.0'
+gem 'rggen-systemverilog', '~> 0.36.0'
+gem 'rggen-verilog', '~> 0.14.0'
+gem 'rggen-veryl', '~> 0.8.0'
+gem 'rggen-vhdl', '~> 0.13.0'

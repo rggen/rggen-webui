@@ -1,17 +1,28 @@
+import { useRef, useEffect } from 'react';
 import type { BitField, BitFieldType } from '../types/rggen';
 import { BIT_FIELD_TYPES, NO_INITIAL_VALUE_TYPES } from '../types/rggen';
 
-
 interface Props {
   bitField: BitField;
+  highlighted?: boolean;
+  highlightedProperty?: keyof BitField;
   onChange: (updates: Partial<BitField>) => void;
   onDelete: () => void;
 }
 
 const td = 'px-2 py-1 border-r border-gray-200 text-sm';
+const CELL_HL = 'outline outline-2 outline-red-500';
 
-export function BitFieldRow({ bitField, onChange, onDelete }: Props) {
+export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChange, onDelete }: Props) {
+  const rowRef = useRef<HTMLTableRowElement>(null);
   const noInitVal = NO_INITIAL_VALUE_TYPES.has(bitField.type);
+
+  useEffect(() => {
+    if (highlighted) rowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [highlighted]);
+
+  const hl = (prop: keyof BitField) =>
+    highlightedProperty === prop ? CELL_HL : '';
 
   const handleTypeChange = (newType: BitFieldType) => {
     const updates: Partial<BitField> = { type: newType };
@@ -23,8 +34,11 @@ export function BitFieldRow({ bitField, onChange, onDelete }: Props) {
 
   return (
     <>
-      <tr className="border-b border-gray-100 bg-gray-50 hover:bg-gray-100">
-        <td className={`${td} min-w-36`}>
+      <tr
+        ref={rowRef}
+        className={`border-b border-gray-100 hover:bg-gray-100 ${highlighted ? 'bg-red-100 hover:bg-red-100' : 'bg-gray-50'}`}
+      >
+        <td className={`${td} min-w-36 ${hl('name')}`}>
           <input
             className="w-full outline-none bg-transparent"
             value={bitField.name}
@@ -32,7 +46,7 @@ export function BitFieldRow({ bitField, onChange, onDelete }: Props) {
             onChange={e => onChange({ name: e.target.value })}
           />
         </td>
-        <td className={`${td} w-16 text-center`}>
+        <td className={`${td} w-16 text-center ${hl('lsb')}`}>
           <input
             className="w-full outline-none bg-transparent font-mono text-center"
             value={bitField.lsb}
@@ -40,7 +54,7 @@ export function BitFieldRow({ bitField, onChange, onDelete }: Props) {
             onChange={e => onChange({ lsb: e.target.value })}
           />
         </td>
-        <td className={`${td} w-16 text-center`}>
+        <td className={`${td} w-16 text-center ${hl('width')}`}>
           <input
             className="w-full outline-none bg-transparent font-mono text-center"
             value={bitField.width}
@@ -48,7 +62,7 @@ export function BitFieldRow({ bitField, onChange, onDelete }: Props) {
             onChange={e => onChange({ width: e.target.value })}
           />
         </td>
-        <td className={`${td} w-32`}>
+        <td className={`${td} w-32 ${hl('type')}`}>
           <select
             className="w-full outline-none bg-transparent"
             value={bitField.type}
@@ -59,7 +73,7 @@ export function BitFieldRow({ bitField, onChange, onDelete }: Props) {
             ))}
           </select>
         </td>
-        <td className={`${td} w-24`}>
+        <td className={`${td} w-24 ${hl('initialValue')}`}>
           <div className="flex items-center gap-1">
             <input
               className={`w-full outline-none font-mono ${noInitVal ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-transparent'}`}
@@ -79,7 +93,7 @@ export function BitFieldRow({ bitField, onChange, onDelete }: Props) {
             )}
           </div>
         </td>
-        <td className={td}>
+        <td className={`${td} ${hl('comment')}`}>
           <input
             className="w-full outline-none bg-transparent"
             value={bitField.comment}
@@ -101,13 +115,13 @@ export function BitFieldRow({ bitField, onChange, onDelete }: Props) {
       </tr>
 
       {bitField.showAdvanced && (
-        <tr className="bg-red-50 border-b border-gray-100">
+        <tr className={`border-b border-gray-100 ${highlighted ? 'bg-red-50' : 'bg-red-50'}`}>
           <td colSpan={8} className="px-8 py-2">
             <div className="flex flex-col gap-2 text-sm">
               <div className="flex items-center gap-4">
                 <span className="text-gray-600 font-medium w-20">Reference:</span>
                 <input
-                  className="border border-gray-300 rounded px-2 py-0.5 w-56 font-mono text-sm focus:outline-none focus:border-red-400"
+                  className={`border border-gray-300 rounded px-2 py-0.5 w-56 font-mono text-sm focus:outline-none focus:border-red-400 ${hl('reference')}`}
                   value={bitField.reference}
                   placeholder="register_0.bit_field_0"
                   onChange={e => onChange({ reference: e.target.value })}
@@ -118,7 +132,7 @@ export function BitFieldRow({ bitField, onChange, onDelete }: Props) {
                 <label className="flex items-center gap-1">
                   <span className="text-gray-500">Size</span>
                   <input
-                    className="border border-gray-300 rounded px-2 py-0.5 w-20 focus:outline-none focus:border-red-400"
+                    className={`border border-gray-300 rounded px-2 py-0.5 w-20 focus:outline-none focus:border-red-400 ${hl('sequenceSize')}`}
                     value={bitField.sequenceSize}
                     placeholder="e.g. 4"
                     onChange={e => onChange({ sequenceSize: e.target.value })}
@@ -127,7 +141,7 @@ export function BitFieldRow({ bitField, onChange, onDelete }: Props) {
                 <label className="flex items-center gap-1">
                   <span className="text-gray-500">Step</span>
                   <input
-                    className="border border-gray-300 rounded px-2 py-0.5 w-20 focus:outline-none focus:border-red-400"
+                    className={`border border-gray-300 rounded px-2 py-0.5 w-20 focus:outline-none focus:border-red-400 ${hl('sequenceStep')}`}
                     value={bitField.sequenceStep}
                     placeholder="e.g. 8"
                     onChange={e => onChange({ sequenceStep: e.target.value })}

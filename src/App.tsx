@@ -1,19 +1,58 @@
+import { useState, useEffect, useMemo } from 'react';
 import JSZip from 'jszip';
 import { useEditorState } from './hooks/useEditorState';
+import { useRgGenWasm } from './hooks/useRgGenWasm';
 import { BlockTabs } from './components/BlockTabs';
 import { BlockSettings } from './components/BlockSettings';
 import { ConfigSettings } from './components/ConfigSettings';
 import { RegisterTable } from './components/RegisterTable';
-import { generateBlockYaml, generateConfigYaml } from './utils/yamlGenerator';
+import { YamlPreviewModal } from './components/YamlPreviewModal';
+import {
+  generateBlockYaml, generateConfigYaml,
+  generateBlockYamlWithSourceMap, generateConfigYamlWithSourceMap,
+  lookupSourceMap,
+} from './utils/yamlGenerator';
+import type { SourceLocation } from './utils/yamlGenerator';
 
 export default function App() {
   const state = useEditorState();
+  const wasm = useRgGenWasm();
+  const [showPreview, setShowPreview] = useState(false);
+
+  // Derive highlight location from error — pure computation, no setState needed
+  const errorLoc = useMemo<SourceLocation | null>(() => {
+    if (!wasm.errorLocation) return null;
+    const approximate = wasm.errorLocation.approximate;
+    const strip = (loc: SourceLocation | null): SourceLocation | null =>
+      loc && approximate
+        ? { ...loc, property: undefined, bfProperty: undefined, configField: undefined, blockProperty: undefined }
+        : loc;
+
+    if (wasm.errorLocation.kind === 'config') {
+      const { sourceMap } = generateConfigYamlWithSourceMap(state.config);
+      return strip(lookupSourceMap(sourceMap, wasm.errorLocation.line));
+    }
+    const block = state.blocks.find(b => (b.name || 'block') === wasm.errorLocation!.blockName);
+    if (!block) return null;
+    const { sourceMap } = generateBlockYamlWithSourceMap(block);
+    return strip(lookupSourceMap(sourceMap, wasm.errorLocation.line));
+  }, [wasm.errorLocation, state.config, state.blocks]);
+
+  // Side effects only: switch block tab and expand the relevant register
+  useEffect(() => {
+    if (!wasm.errorLocation || wasm.errorLocation.kind !== 'block') return;
+    const block = state.blocks.find(b => (b.name || 'block') === wasm.errorLocation!.blockName);
+    if (!block) return;
+    state.setActiveBlockId(block.id);
+    if (errorLoc?.registerId) state.expandRegister(block.id, errorLoc.registerId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wasm.errorLocation]);
 
   const handleDownload = async () => {
     const zip = new JSZip();
-    zip.file('config.yml', generateConfigYaml(state.config));
+    zip.file('config.yaml', generateConfigYaml(state.config));
     for (const block of state.blocks) {
-      zip.file(`${block.name || 'block'}.yml`, generateBlockYaml(block));
+      zip.file(`${block.name || 'block'}.yaml`, generateBlockYaml(block));
     }
     const blob = await zip.generateAsync({ type: 'blob' });
     const url = URL.createObjectURL(blob);
@@ -23,6 +62,11 @@ export default function App() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  const generateBusy = wasm.status === 'loading' || wasm.status === 'running';
+  const generateLabel = wasm.status === 'loading' ? 'Loading...'
+    : wasm.status === 'running' ? 'Running...'
+    : 'Generate (ZIP)';
 
   if (!state.activeBlock) return null;
 
@@ -63,13 +107,37 @@ export default function App() {
             Reset
           </button>
           <button
-            className="px-3 py-1 bg-red-800 hover:bg-red-700 text-white text-sm rounded"
+            className="px-3 py-1 border border-gray-300 hover:border-red-400 text-gray-500 hover:text-red-700 text-sm rounded"
+            onClick={() => setShowPreview(true)}
+          >
+            Preview YAML
+          </button>
+          <button
+            className="px-3 py-1 border border-red-300 hover:border-red-500 text-red-700 hover:text-red-900 text-sm rounded"
             onClick={handleDownload}
           >
-            Download All (ZIP)
+            Download YAML (ZIP)
+          </button>
+          <button
+            className="px-3 py-1 bg-red-800 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded"
+            onClick={() => wasm.generate(state.config, state.blocks)}
+            disabled={generateBusy}
+          >
+            {generateLabel}
           </button>
         </div>
       </div>
+
+      {/* Error banner */}
+      {wasm.error && (
+        <div className="shrink-0 flex items-start gap-2 px-4 py-2 bg-red-50 border-b border-red-200 text-red-800 text-sm">
+          <pre className="flex-1 whitespace-pre-wrap font-mono text-xs">{wasm.error}</pre>
+          <button
+            className="shrink-0 text-red-400 hover:text-red-700 leading-none text-base"
+            onClick={wasm.clearError}
+          >×</button>
+        </div>
+      )}
 
       {/* Config settings */}
       <div className="shrink-0">
@@ -77,6 +145,7 @@ export default function App() {
           config={state.config}
           onChange={state.updateConfig}
           onImport={state.importConfigFile}
+          highlightedField={errorLoc?.kind === 'config' ? errorLoc.configField : undefined}
         />
       </div>
 
@@ -97,12 +166,23 @@ export default function App() {
         <BlockSettings
           block={state.activeBlock}
           onChange={updates => state.updateBlock(state.activeBlockId, updates)}
+          highlightedField={errorLoc?.kind === 'block' && errorLoc.blockId === state.activeBlock.id ? errorLoc.blockProperty : undefined}
         />
       </div>
+
+      {/* YAML Preview modal */}
+      {showPreview && (
+        <YamlPreviewModal
+          config={state.config}
+          blocks={state.blocks}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
 
       {/* Register table */}
       <RegisterTable
         block={state.activeBlock}
+        errorLoc={errorLoc}
         onAddRegister={() => state.addRegister(state.activeBlockId)}
         onDeleteRegister={regId => state.deleteRegister(state.activeBlockId, regId)}
         onUpdateRegister={(regId, updates) => state.updateRegister(state.activeBlockId, regId, updates)}

@@ -145,6 +145,13 @@ export function useEditorState() {
         : b
     ));
 
+  const expandRegister = (blockId: string, regId: string) =>
+    setBlocks(prev => prev.map(b =>
+      b.id === blockId
+        ? { ...b, registers: b.registers.map(r => r.id === regId ? { ...r, expanded: true } : r) }
+        : b
+    ));
+
   const expandAll = (blockId: string) =>
     setBlocks(prev => prev.map(b =>
       b.id === blockId ? { ...b, registers: b.registers.map(r => ({ ...r, expanded: true })) } : b
@@ -270,7 +277,7 @@ export function useEditorState() {
     blocks, activeBlock, activeBlockId, config,
     setActiveBlockId, updateConfig,
     addBlock, deleteBlock, updateBlock,
-    addRegister, deleteRegister, updateRegister, toggleExpanded, expandAll, collapseAll,
+    addRegister, deleteRegister, updateRegister, toggleExpanded, expandRegister, expandAll, collapseAll,
     addBitField, deleteBitField, updateBitField,
     addQualifier, deleteQualifier, updateQualifier,
     resetState, loadSample, importBlockFile, importConfigFile,

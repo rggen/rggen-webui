@@ -3,6 +3,8 @@ import { BitFieldRow } from './BitFieldRow';
 
 interface Props {
   register: Register;
+  errorBitFieldId?: string;
+  highlightedBfProperty?: keyof BitField;
   onAddBitField: () => void;
   onDeleteBitField: (bfId: string) => void;
   onUpdateBitField: (bfId: string, updates: Partial<BitField>) => void;
@@ -10,7 +12,10 @@ interface Props {
 
 const th = 'px-2 py-1 text-xs font-medium text-gray-500 text-left border-r border-gray-200 bg-gray-100';
 
-export function BitFieldSubTable({ register, onAddBitField, onDeleteBitField, onUpdateBitField }: Props) {
+export function BitFieldSubTable({
+  register, errorBitFieldId, highlightedBfProperty,
+  onAddBitField, onDeleteBitField, onUpdateBitField,
+}: Props) {
   return (
     <tr>
       <td colSpan={7} className="p-0 bg-gray-50">
@@ -33,6 +38,8 @@ export function BitFieldSubTable({ register, onAddBitField, onDeleteBitField, on
                 <BitFieldRow
                   key={bf.id}
                   bitField={bf}
+                  highlighted={bf.id === errorBitFieldId}
+                  highlightedProperty={bf.id === errorBitFieldId ? highlightedBfProperty : undefined}
                   onChange={updates => onUpdateBitField(bf.id, updates)}
                   onDelete={() => onDeleteBitField(bf.id)}
                 />

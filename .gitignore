@@ -24,3 +24,8 @@ PLAN.md
 *.njsproj
 *.sln
 *.sw?
+
+# rggen-wasm
+build
+rubies
+rggen.wasm

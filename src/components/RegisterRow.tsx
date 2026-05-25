@@ -1,9 +1,12 @@
+import { useRef, useEffect } from 'react';
 import type { Register, RegisterType, IndirectQualifier } from '../types/rggen';
 
 const REGISTER_TYPES: RegisterType[] = ['default', 'rw', 'indirect', 'external', 'reserved', 'maskable'];
 
 interface Props {
   register: Register;
+  highlighted?: boolean;
+  highlightedProperty?: keyof Register;
   onToggle: () => void;
   onChange: (updates: Partial<Register>) => void;
   onDelete: () => void;
@@ -13,6 +16,7 @@ interface Props {
 }
 
 const td = 'px-2 py-1 border-r border-gray-200 text-sm';
+const CELL_HL = 'outline outline-2 outline-red-500';
 
 function splitDims(arraySize: string): string[] {
   if (!arraySize.trim()) return [];
@@ -20,10 +24,19 @@ function splitDims(arraySize: string): string[] {
 }
 
 export function RegisterRow({
-  register, onToggle, onChange, onDelete,
+  register, highlighted, highlightedProperty,
+  onToggle, onChange, onDelete,
   onAddQualifier, onDeleteQualifier, onUpdateQualifier,
 }: Props) {
+  const rowRef = useRef<HTMLTableRowElement>(null);
   const dims = splitDims(register.arraySize);
+
+  useEffect(() => {
+    if (highlighted) rowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [highlighted]);
+
+  const hl = (prop: keyof Register) =>
+    highlightedProperty === prop ? CELL_HL : '';
 
   const updateDim = (i: number, val: string) => {
     const next = dims.map((d, j) => j === i ? val : d);
@@ -45,7 +58,10 @@ export function RegisterRow({
 
   return (
     <>
-      <tr className="border-b border-gray-200 hover:bg-red-50">
+      <tr
+        ref={rowRef}
+        className={`border-b border-gray-200 hover:bg-red-50 ${highlighted ? 'bg-red-100' : ''}`}
+      >
         <td className="px-2 py-1 w-8 text-center border-r border-gray-200">
           <button
             className="text-gray-500 hover:text-red-700 text-xs"
@@ -55,7 +71,7 @@ export function RegisterRow({
             {register.expanded ? '▼' : '▶'}
           </button>
         </td>
-        <td className={`${td} min-w-40`}>
+        <td className={`${td} min-w-40 ${hl('name')}`}>
           <input
             className="w-full outline-none bg-transparent"
             value={register.name}
@@ -63,7 +79,7 @@ export function RegisterRow({
             onChange={e => onChange({ name: e.target.value })}
           />
         </td>
-        <td className={`${td} w-24`}>
+        <td className={`${td} w-24 ${hl('offsetAddress')}`}>
           <input
             className="w-full outline-none bg-transparent font-mono"
             value={register.offsetAddress}
@@ -71,7 +87,7 @@ export function RegisterRow({
             onChange={e => onChange({ offsetAddress: e.target.value })}
           />
         </td>
-        <td className={`${td} w-28`}>
+        <td className={`${td} w-28 ${hl('type')}`}>
           <select
             className="w-full outline-none bg-transparent"
             value={register.type}
@@ -82,7 +98,7 @@ export function RegisterRow({
             ))}
           </select>
         </td>
-        <td className={td}>
+        <td className={`${td} ${hl('comment')}`}>
           <input
             className="w-full outline-none bg-transparent"
             value={register.comment}
@@ -114,7 +130,7 @@ export function RegisterRow({
                     <div key={i} className="flex items-center gap-1">
                       <span className="text-gray-400 text-xs w-12">Dim {i}</span>
                       <input
-                        className="border border-gray-300 rounded px-2 py-0.5 w-20 focus:outline-none focus:border-red-400 font-mono"
+                        className={`border border-gray-300 rounded px-2 py-0.5 w-20 focus:outline-none focus:border-red-400 font-mono ${i === 0 ? hl('arraySize') : ''}`}
                         value={d}
                         placeholder="e.g. 4"
                         onChange={e => updateDim(i, e.target.value)}
@@ -123,7 +139,7 @@ export function RegisterRow({
                         <>
                           <span className="text-gray-500 text-xs ml-2">Step</span>
                           <input
-                            className="border border-gray-300 rounded px-2 py-0.5 w-20 focus:outline-none focus:border-red-400"
+                            className={`border border-gray-300 rounded px-2 py-0.5 w-20 focus:outline-none focus:border-red-400 ${hl('arrayStep')}`}
                             value={register.arrayStep}
                             placeholder="e.g. 8"
                             onChange={e => onChange({ arrayStep: e.target.value })}

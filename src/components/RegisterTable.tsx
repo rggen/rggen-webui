@@ -1,10 +1,12 @@
 import { Fragment } from 'react';
 import type { Register, RegisterBlock, BitField, IndirectQualifier } from '../types/rggen';
+import type { SourceLocation } from '../utils/yamlGenerator';
 import { RegisterRow } from './RegisterRow';
 import { BitFieldSubTable } from './BitFieldSubTable';
 
 interface Props {
   block: RegisterBlock;
+  errorLoc?: SourceLocation | null;
   onAddRegister: () => void;
   onDeleteRegister: (regId: string) => void;
   onUpdateRegister: (regId: string, updates: Partial<Register>) => void;
@@ -22,7 +24,8 @@ interface Props {
 const th = 'px-2 py-1 text-xs font-medium text-gray-500 text-left border-r border-gray-200';
 
 export function RegisterTable({
-  block, onAddRegister, onDeleteRegister, onUpdateRegister, onToggleExpanded,
+  block, errorLoc,
+  onAddRegister, onDeleteRegister, onUpdateRegister, onToggleExpanded,
   onExpandAll, onCollapseAll,
   onAddBitField, onDeleteBitField, onUpdateBitField,
   onAddQualifier, onDeleteQualifier, onUpdateQualifier,
@@ -42,27 +45,35 @@ export function RegisterTable({
           </tr>
         </thead>
         <tbody>
-          {block.registers.map(reg => (
-            <Fragment key={reg.id}>
-              <RegisterRow
-                register={reg}
-                onToggle={() => onToggleExpanded(reg.id)}
-                onChange={updates => onUpdateRegister(reg.id, updates)}
-                onDelete={() => onDeleteRegister(reg.id)}
-                onAddQualifier={() => onAddQualifier(reg.id)}
-                onDeleteQualifier={qId => onDeleteQualifier(reg.id, qId)}
-                onUpdateQualifier={(qId, updates) => onUpdateQualifier(reg.id, qId, updates)}
-              />
-              {reg.expanded && (
-                <BitFieldSubTable
+          {block.registers.map(reg => {
+            const isRegError = errorLoc?.kind === 'register' && errorLoc.registerId === reg.id;
+            const isBfError  = errorLoc?.kind === 'bitfield'  && errorLoc.registerId === reg.id;
+            return (
+              <Fragment key={reg.id}>
+                <RegisterRow
                   register={reg}
-                  onAddBitField={() => onAddBitField(reg.id)}
-                  onDeleteBitField={bfId => onDeleteBitField(reg.id, bfId)}
-                  onUpdateBitField={(bfId, updates) => onUpdateBitField(reg.id, bfId, updates)}
+                  highlighted={isRegError}
+                  highlightedProperty={isRegError ? errorLoc.property : undefined}
+                  onToggle={() => onToggleExpanded(reg.id)}
+                  onChange={updates => onUpdateRegister(reg.id, updates)}
+                  onDelete={() => onDeleteRegister(reg.id)}
+                  onAddQualifier={() => onAddQualifier(reg.id)}
+                  onDeleteQualifier={qId => onDeleteQualifier(reg.id, qId)}
+                  onUpdateQualifier={(qId, updates) => onUpdateQualifier(reg.id, qId, updates)}
                 />
-              )}
-            </Fragment>
-          ))}
+                {reg.expanded && (
+                  <BitFieldSubTable
+                    register={reg}
+                    errorBitFieldId={isBfError ? errorLoc.bitFieldId : undefined}
+                    highlightedBfProperty={isBfError ? errorLoc.bfProperty : undefined}
+                    onAddBitField={() => onAddBitField(reg.id)}
+                    onDeleteBitField={bfId => onDeleteBitField(reg.id, bfId)}
+                    onUpdateBitField={(bfId, updates) => onUpdateBitField(reg.id, bfId, updates)}
+                  />
+                )}
+              </Fragment>
+            );
+          })}
         </tbody>
       </table>
       <div className="px-4 py-2 flex items-center gap-2">
