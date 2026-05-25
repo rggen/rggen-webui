@@ -22,7 +22,7 @@ export function useRgGenWasm() {
   const ensureModule = async (): Promise<WebAssembly.Module> => {
     if (moduleRef.current) return moduleRef.current;
     setStatus('loading');
-    const mod = await WebAssembly.compileStreaming(fetch('/rggen.wasm'));
+    const mod = await WebAssembly.compileStreaming(fetch(`${import.meta.env.BASE_URL}rggen.wasm`));
     moduleRef.current = mod;
     return mod;
   };

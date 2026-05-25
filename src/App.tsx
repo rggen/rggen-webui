@@ -75,7 +75,7 @@ export default function App() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-red-200 shrink-0">
         <div className="flex items-center gap-3">
-          <img src="/rggen.png" alt="RgGen" className="h-8" />
+          <img src={`${import.meta.env.BASE_URL}rggen.png`} alt="RgGen" className="h-8" />
           <a
             href="https://github.com/rggen/rggen"
             target="_blank"
