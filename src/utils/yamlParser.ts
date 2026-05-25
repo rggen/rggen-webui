@@ -3,6 +3,13 @@ import type { RegisterBlock, Register, BitField, IndirectQualifier, ProjectConfi
 import { BIT_FIELD_TYPES, NO_INITIAL_VALUE_TYPES } from '../types/rggen';
 
 const REGISTER_TYPES = new Set<string>(['default', 'rw', 'indirect', 'external', 'reserved', 'maskable']);
+
+function normalizeOffsetAddress(value: unknown): string {
+  if (value === undefined || value === null || value === '') return '';
+  const num = Number(String(value).trim());
+  if (!Number.isInteger(num) || num < 0) return String(value).replace(/^0x/i, '');
+  return num.toString(16);
+}
 const BIT_FIELD_TYPE_SET = new Set<string>(BIT_FIELD_TYPES);
 const BUS_WIDTHS = new Set([8, 16, 32, 64]);
 const PROTOCOLS = new Set(['apb', 'axi4lite', 'avalon', 'wishbone']);
@@ -149,7 +156,7 @@ function parseRegister(v: unknown, path: string): Register {
   return {
     id: crypto.randomUUID(),
     name:               o.name           !== undefined ? str(o.name,           `${path}.name`)           : '',
-    offsetAddress:      o.offset_address !== undefined ? String(o.offset_address)                        : '',
+    offsetAddress:      normalizeOffsetAddress(o.offset_address),
     comment:            o.comment        !== undefined ? str(o.comment,        `${path}.comment`)        : '',
     type,
     indirectQualifiers,

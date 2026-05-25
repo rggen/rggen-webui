@@ -107,7 +107,7 @@ function buildBitFieldLines(bf: BitField, lines: string[], indent: string): void
 function buildRegisterLines(reg: Register, lines: string[], indent: string): void {
   const pfx = `${indent}  `;
   lines.push(`${indent}- name: ${reg.name}`);
-  if (reg.offsetAddress) lines.push(`${pfx}offset_address: ${reg.offsetAddress}`);
+  if (reg.offsetAddress) lines.push(`${pfx}offset_address: 0x${reg.offsetAddress}`);
   const regType = buildRegisterType(reg);
   if (regType) lines.push(`${pfx}type: ${regType}`);
   const regSize = buildRegisterSize(reg);

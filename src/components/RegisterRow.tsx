@@ -80,12 +80,14 @@ export function RegisterRow({
           />
         </td>
         <td className={`${td} w-24 ${hl('offsetAddress')}`}>
-          <input
-            className="w-full outline-none bg-transparent font-mono"
-            value={register.offsetAddress}
-            placeholder="0x00"
-            onChange={e => onChange({ offsetAddress: e.target.value })}
-          />
+          <div className="flex items-center">
+            <span className="text-gray-400 font-mono select-none">0x</span>
+            <input
+              className="w-full outline-none bg-transparent font-mono"
+              value={register.offsetAddress.replace(/^0x/i, '')}
+              onChange={e => onChange({ offsetAddress: e.target.value.replace(/^0x/i, '') })}
+            />
+          </div>
         </td>
         <td className={`${td} w-28 ${hl('type')}`}>
           <select
