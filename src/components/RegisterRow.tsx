@@ -71,6 +71,14 @@ export function RegisterRow({
             {register.expanded ? '▼' : '▶'}
           </button>
         </td>
+        <td className="px-2 py-1 w-20 text-center border-r border-gray-200">
+          <button
+            className="text-xs text-gray-400 hover:text-red-700 whitespace-nowrap"
+            onClick={() => onChange({ showAdvanced: !register.showAdvanced })}
+          >
+            Adv {register.showAdvanced ? '▲' : '▼'}
+          </button>
+        </td>
         <td className={`${td} min-w-40 ${hl('name')}`}>
           <input
             className="w-full outline-none bg-transparent"
@@ -107,14 +115,6 @@ export function RegisterRow({
             placeholder="comment"
             onChange={e => onChange({ comment: e.target.value })}
           />
-        </td>
-        <td className="px-2 py-1 w-20 text-center border-r border-gray-200">
-          <button
-            className="text-xs text-gray-400 hover:text-red-700 whitespace-nowrap"
-            onClick={() => onChange({ showAdvanced: !register.showAdvanced })}
-          >
-            Adv {register.showAdvanced ? '▲' : '▼'}
-          </button>
         </td>
         <td className="px-2 py-1 w-8 text-center">
           <button className="text-gray-400 hover:text-red-600" onClick={onDelete}>×</button>

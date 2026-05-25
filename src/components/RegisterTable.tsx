@@ -37,11 +37,11 @@ export function RegisterTable({
           <thead className="sticky top-0 z-10">
             <tr className="bg-gray-100 border-b border-gray-300">
               <th className="px-2 py-1 w-8 border-r border-gray-200"></th>
+              <th className="px-2 py-1 w-20 border-r border-gray-200"></th>
               <th className={`${th} min-w-40`}>Name</th>
               <th className={`${th} w-24`}>Offset</th>
               <th className={`${th} w-28`}>Type</th>
               <th className={th}>Comment</th>
-              <th className="px-2 py-1 w-20 border-r border-gray-200"></th>
               <th className="px-2 py-1 w-8"></th>
             </tr>
           </thead>

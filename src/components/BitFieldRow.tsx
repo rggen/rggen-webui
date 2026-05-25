@@ -38,6 +38,14 @@ export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChan
         ref={rowRef}
         className={`border-b border-gray-100 hover:bg-gray-100 ${highlighted ? 'bg-red-100 hover:bg-red-100' : 'bg-gray-50'}`}
       >
+        <td className="px-2 py-1 w-20 text-center">
+          <button
+            className="text-xs text-gray-400 hover:text-red-700 whitespace-nowrap"
+            onClick={() => onChange({ showAdvanced: !bitField.showAdvanced })}
+          >
+            Adv {bitField.showAdvanced ? '▲' : '▼'}
+          </button>
+        </td>
         <td className={`${td} min-w-36 ${hl('name')}`}>
           <input
             className="w-full outline-none bg-transparent"
@@ -101,14 +109,6 @@ export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChan
             onChange={e => onChange({ comment: e.target.value })}
           />
         </td>
-        <td className="px-2 py-1 w-20 text-center">
-          <button
-            className="text-xs text-gray-400 hover:text-red-700 whitespace-nowrap"
-            onClick={() => onChange({ showAdvanced: !bitField.showAdvanced })}
-          >
-            Adv {bitField.showAdvanced ? '▲' : '▼'}
-          </button>
-        </td>
         <td className="px-2 py-1 w-8 text-center">
           <button className="text-gray-400 hover:text-red-600" onClick={onDelete}>×</button>
         </td>
@@ -118,15 +118,6 @@ export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChan
         <tr className={`border-b border-gray-100 ${highlighted ? 'bg-red-50' : 'bg-red-50'}`}>
           <td colSpan={8} className="px-8 py-2">
             <div className="flex flex-col gap-2 text-sm">
-              <div className="flex items-center gap-4">
-                <span className="text-gray-600 font-medium w-20">Reference:</span>
-                <input
-                  className={`border border-gray-300 rounded px-2 py-0.5 w-56 font-mono text-sm focus:outline-none focus:border-red-400 ${hl('reference')}`}
-                  value={bitField.reference}
-                  placeholder="register_0.bit_field_0"
-                  onChange={e => onChange({ reference: e.target.value })}
-                />
-              </div>
               <div className="flex items-center gap-4">
                 <span className="text-gray-600 font-medium w-20">Sequence:</span>
                 <label className="flex items-center gap-1">
@@ -147,6 +138,15 @@ export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChan
                     onChange={e => onChange({ sequenceStep: e.target.value })}
                   />
                 </label>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-gray-600 font-medium w-20">Reference:</span>
+                <input
+                  className={`border border-gray-300 rounded px-2 py-0.5 w-56 font-mono text-sm focus:outline-none focus:border-red-400 ${hl('reference')}`}
+                  value={bitField.reference}
+                  placeholder="register_0.bit_field_0"
+                  onChange={e => onChange({ reference: e.target.value })}
+                />
               </div>
             </div>
           </td>

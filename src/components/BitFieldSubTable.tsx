@@ -23,13 +23,13 @@ export function BitFieldSubTable({
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-gray-200">
+                <th className="px-2 py-1 w-20 bg-gray-100"></th>
                 <th className={`${th} min-w-36`}>Name</th>
                 <th className={`${th} w-16 text-center`}>LSB</th>
                 <th className={`${th} w-16 text-center`}>Width</th>
                 <th className={`${th} w-32`}>Type</th>
                 <th className={`${th} w-20`}>Init</th>
                 <th className={th}>Comment</th>
-                <th className="px-2 py-1 w-20 bg-gray-100"></th>
                 <th className="px-2 py-1 w-8 bg-gray-100"></th>
               </tr>
             </thead>
