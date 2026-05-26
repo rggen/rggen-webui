@@ -59,7 +59,6 @@ function yamlKeyToConfigField(s: string): keyof ProjectConfig | undefined {
   if (s.startsWith('bus_width:')) return 'busWidth';
   if (s.startsWith('address_width:')) return 'addressWidth';
   if (s.startsWith('protocol:')) return 'protocol';
-  if (s.startsWith('enable_wide_register:')) return 'enableWideRegister';
   return undefined;
 }
 
@@ -180,7 +179,6 @@ function buildConfigLines(config: ProjectConfig): string[] {
   lines.push(`bus_width: ${config.busWidth}`);
   lines.push(`address_width: ${config.addressWidth || 16}`);
   lines.push(`protocol: ${config.protocol}`);
-  if (config.enableWideRegister) lines.push('enable_wide_register: true');
   return lines;
 }
 

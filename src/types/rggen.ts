@@ -94,5 +94,4 @@ export interface ProjectConfig {
   busWidth: 8 | 16 | 32 | 64;
   addressWidth: string;
   protocol: Protocol;
-  enableWideRegister: boolean;
 }

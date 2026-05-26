@@ -66,7 +66,6 @@ const DEFAULT_CONFIG: ProjectConfig = {
   busWidth: 32,
   addressWidth: '16',
   protocol: 'apb',
-  enableWideRegister: false,
 };
 
 function loadState(): { blocks: RegisterBlock[]; activeBlockId: string; config: ProjectConfig } {

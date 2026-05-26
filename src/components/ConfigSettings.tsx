@@ -52,15 +52,7 @@ export function ConfigSettings({ config, onChange, onImport, highlightedField }:
           {PROTOCOLS.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
       </label>
-      <label className={`flex items-center gap-2 ${hl('enableWideRegister')}`}>
-        <input
-          type="checkbox"
-          checked={config.enableWideRegister}
-          onChange={e => onChange({ enableWideRegister: e.target.checked })}
-          className="accent-red-700"
-        />
-        <span className="text-gray-500 font-medium">Enable Wide Register</span>
-      </label>
+
       <label className="px-2 py-0.5 text-xs border border-gray-300 text-gray-600 hover:bg-gray-100 rounded cursor-pointer">
         From YAML
         <input type="file" accept=".yml,.yaml" className="hidden" onChange={handleImport} />

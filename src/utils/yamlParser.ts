@@ -257,7 +257,7 @@ export function parseBlockYaml(content: string): RegisterBlock[] {
 export function parseConfigYaml(content: string): ProjectConfig {
   const raw = yaml.load(content);
   const o = obj(raw, 'config');
-  checkFields(o, ['bus_width', 'address_width', 'protocol', 'enable_wide_register'], 'config');
+  checkFields(o, ['bus_width', 'address_width', 'protocol'], 'config');
 
   const busWidth = o.bus_width !== undefined ? num(o.bus_width, 'config.bus_width') : 32;
   if (!BUS_WIDTHS.has(busWidth)) throw new Error('config.bus_width: must be 8, 16, 32, or 64');
@@ -269,6 +269,5 @@ export function parseConfigYaml(content: string): ProjectConfig {
     busWidth: busWidth as 8 | 16 | 32 | 64,
     addressWidth: o.address_width !== undefined ? String(o.address_width) : '16',
     protocol: protocol as ProjectConfig['protocol'],
-    enableWideRegister: o.enable_wide_register === true,
   };
 }
