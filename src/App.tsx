@@ -29,7 +29,9 @@ export default function App() {
   const [showPreview, setShowPreview] = useState(false);
   const [showIntegrationGuide, setShowIntegrationGuide] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
+  const [showSampleMenu, setShowSampleMenu] = useState(false);
   const versionsRef = useRef<HTMLDivElement>(null);
+  const sampleMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!showVersions) return;
@@ -41,6 +43,17 @@ export default function App() {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [showVersions]);
+
+  useEffect(() => {
+    if (!showSampleMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (sampleMenuRef.current && !sampleMenuRef.current.contains(e.target as Node)) {
+        setShowSampleMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showSampleMenu]);
 
   // Derive highlight location from error — pure computation, no setState needed
   const errorLoc = useMemo<SourceLocation | null>(() => {
@@ -136,14 +149,30 @@ export default function App() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            className="px-3 py-1 border border-gray-300 hover:border-red-400 text-gray-500 hover:text-red-700 text-sm rounded"
-            onClick={() => {
-              if (confirm('Load sample data? Current data will be replaced.')) state.loadSample();
-            }}
-          >
-            Load Sample
-          </button>
+          <div className="relative" ref={sampleMenuRef}>
+            <button
+              className="px-3 py-1 border border-gray-300 hover:border-red-400 text-gray-500 hover:text-red-700 text-sm rounded"
+              onClick={() => setShowSampleMenu(v => !v)}
+            >
+              Load Sample
+            </button>
+            {showSampleMenu && (
+              <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded shadow-md min-w-max">
+                {[
+                  { label: 'block_0 (all field types)', action: () => { if (confirm('Load sample data? Current data will be replaced.')) { state.loadSample(); setShowSampleMenu(false); } } },
+                  { label: 'uart_csr (UART)',            action: () => { if (confirm('Load sample data? Current data will be replaced.')) { state.loadUartCsr(); setShowSampleMenu(false); } } },
+                ].map(({ label, action }) => (
+                  <button
+                    key={label}
+                    className="block w-full text-left px-4 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={action}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button
             className="px-3 py-1 border border-gray-300 hover:border-red-400 text-gray-500 hover:text-red-700 text-sm rounded"
             onClick={() => {

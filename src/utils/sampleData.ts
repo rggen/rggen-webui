@@ -173,6 +173,126 @@ register_blocks:
       type: external
 `;
 
+const UART_CSR_YAML = `
+register_blocks:
+  - name: uart_csr
+    byte_size: 32
+    comment: 'UART CSR'
+    registers:
+    - name: rbr
+      offset_address: 0x00
+      type: [indirect, [lcr.dlab, 0]]
+      comment: 'Receiver Buffer Register'
+      bit_fields:
+      - { bit_assignment: { lsb: 0, width: 8 }, type: rotrg }
+
+    - name: thr
+      offset_address: 0x00
+      type: [indirect, [lcr.dlab, 0]]
+      comment: 'Transmitter Holding Register'
+      bit_fields:
+      - { bit_assignment: { lsb: 0, width: 8 }, type: wotrg, initial_value: 255 }
+
+    - name: ier
+      offset_address: 0x04
+      type: [indirect, [lcr.dlab, 0]]
+      comment: 'Interrupt Enable Register'
+      bit_fields:
+      - { name: erbfi,  bit_assignment: { lsb: 0, width: 1 }, type: rw, initial_value: 0, comment: 'Enable Received Data Available Interrupt' }
+      - { name: etbei,  bit_assignment: { lsb: 1, width: 1 }, type: rw, initial_value: 0, comment: 'Enable Transmitter Holding Register Empty Interrupt' }
+      - { name: elsi,   bit_assignment: { lsb: 2, width: 1 }, type: rw, initial_value: 0, comment: 'Enable Receiver Line Status Interrupt' }
+      - { name: edssi,  bit_assignment: { lsb: 3, width: 1 }, type: rw, initial_value: 0, comment: 'Enable Modem Status Interrupt' }
+
+    - name: iir
+      offset_address: 0x08
+      comment: 'Interrupt Identification Register'
+      bit_fields:
+      - { name: intpend, bit_assignment: { lsb: 0, width: 1 }, type: ro, comment: '0: Interrupt is pending, 1: No interrupt is pending' }
+      - { name: intid2,  bit_assignment: { lsb: 1, width: 3 }, type: ro, comment: 'Interrupt ID' }
+
+    - name: fcr
+      offset_address: 0x08
+      comment: 'FIFO Control Register'
+      bit_fields:
+      - { name: fifoen,                  bit_assignment: { lsb: 0, width: 1 }, type: wo,    initial_value: 0, comment: 'FIFO Enable' }
+      - { name: rcvr_fifo_reset,         bit_assignment: { lsb: 1, width: 1 }, type: w1trg,                   comment: 'Receiver FIFO Reset' }
+      - { name: xmit_fifo_reset,         bit_assignment: { lsb: 2, width: 1 }, type: w1trg,                   comment: 'Transmitter FIFO Reset' }
+      - { name: dma_mode_select,         bit_assignment: { lsb: 3, width: 1 }, type: wo,    initial_value: 0, comment: 'DMA Mode Select' }
+      - { name: rcvr_fifo_trigger_level, bit_assignment: { lsb: 6, width: 2 }, type: wo,    initial_value: 0, comment: 'RCVR FIFO Trigger Level' }
+
+    - name: lcr
+      offset_address: 0x0C
+      comment: 'Line Control Register'
+      bit_fields:
+      - { name: wls,          bit_assignment: { lsb: 0, width: 2 }, type: rw, initial_value: 3, comment: 'Word Length Select' }
+      - { name: stb,          bit_assignment: { lsb: 2, width: 1 }, type: rw, initial_value: 0, comment: 'Number of Stop Bits' }
+      - { name: pen,          bit_assignment: { lsb: 3, width: 1 }, type: rw, initial_value: 0, comment: 'Parity Enable' }
+      - { name: eps,          bit_assignment: { lsb: 4, width: 1 }, type: rw, initial_value: 0, comment: 'Even Parity Select' }
+      - { name: stick_parity, bit_assignment: { lsb: 5, width: 1 }, type: rw, initial_value: 0, comment: 'Stick Parity' }
+      - { name: set_break,    bit_assignment: { lsb: 6, width: 1 }, type: rw, initial_value: 0, comment: 'Set Break' }
+      - { name: dlab,         bit_assignment: { lsb: 7, width: 1 }, type: rw, initial_value: 0, comment: 'Divisor Latch Access Bit' }
+
+    - name: mrc
+      offset_address: 0x10
+      comment: 'Modem Control Register'
+      bit_fields:
+      - { name: dtr,       bit_assignment: { lsb: 0, width: 1 }, type: rw, initial_value: 0, comment: 'Data Terminal Ready' }
+      - { name: rts,       bit_assignment: { lsb: 1, width: 1 }, type: rw, initial_value: 0, comment: 'Request To Send' }
+      - { name: out1,      bit_assignment: { lsb: 2, width: 1 }, type: rw, initial_value: 0, comment: 'User Output 1' }
+      - { name: out2,      bit_assignment: { lsb: 3, width: 1 }, type: rw, initial_value: 0, comment: 'User Output 2' }
+      - { name: loop_back, bit_assignment: { lsb: 4, width: 1 }, type: rw, initial_value: 0, comment: 'Loop Back' }
+
+    - name: lsr
+      offset_address: 0x14
+      comment: 'Line Status Register'
+      bit_fields:
+      - { name: dr,                 bit_assignment: { lsb: 0, width: 1 }, type: ro,    comment: 'Data Ready' }
+      - { name: oe,                 bit_assignment: { lsb: 1, width: 1 }, type: rotrg, comment: 'Overrun Error' }
+      - { name: pe,                 bit_assignment: { lsb: 2, width: 1 }, type: rotrg, comment: 'Parity Error' }
+      - { name: fe,                 bit_assignment: { lsb: 3, width: 1 }, type: rotrg, comment: 'Framing Error' }
+      - { name: bi,                 bit_assignment: { lsb: 4, width: 1 }, type: rotrg, comment: 'Break Interrupt' }
+      - { name: thre,               bit_assignment: { lsb: 5, width: 1 }, type: ro,    comment: 'Transmitter Holding Register Empty' }
+      - { name: temt,               bit_assignment: { lsb: 6, width: 1 }, type: ro,    comment: 'Transmitter Empty' }
+      - { name: error_in_rcvr_fifo, bit_assignment: { lsb: 7, width: 1 }, type: ro,    comment: 'RCVR FIFO contains at least one receiver error' }
+
+    - name: msr
+      offset_address: 0x18
+      comment: 'Modem Status Register'
+      bit_fields:
+      - { name: dcts, bit_assignment: { lsb: 0, width: 1 }, type: rotrg, comment: 'Delta Clear To Send' }
+      - { name: ddsr, bit_assignment: { lsb: 1, width: 1 }, type: rotrg, comment: 'Delta Data Set Ready' }
+      - { name: teri, bit_assignment: { lsb: 2, width: 1 }, type: ro,    comment: 'Trailing Edge Ring Indicator' }
+      - { name: ddcd, bit_assignment: { lsb: 3, width: 1 }, type: rotrg, comment: 'Delta Data Carrier Detect' }
+      - { name: cts,  bit_assignment: { lsb: 4, width: 1 }, type: ro,    comment: 'Clear To Send' }
+      - { name: dsr,  bit_assignment: { lsb: 5, width: 1 }, type: ro,    comment: 'Data Set Ready' }
+      - { name: ri,   bit_assignment: { lsb: 6, width: 1 }, type: ro,    comment: 'Ring Indicator' }
+      - { name: dcd,  bit_assignment: { lsb: 7, width: 1 }, type: ro,    comment: 'Data Carrier Detect' }
+
+    - name: scratch
+      offset_address: 0x1c
+      comment: 'Scratch Register'
+      bit_fields:
+      - { bit_assignment: { lsb: 0, width: 8 }, type: rw, initial_value: 0 }
+
+    - name: dll
+      offset_address: 0x00
+      type: [indirect, [lcr.dlab, 1]]
+      comment: 'Divisor Latch (Least Significant Byte) Register'
+      bit_fields:
+      - { bit_assignment: { lsb: 0, width: 8 }, type: rw, initial_value: { default: 0 } }
+
+    - name: dlm
+      offset_address: 0x04
+      type: [indirect, [lcr.dlab, 1]]
+      comment: 'Divisor Latch (Most Significant Byte) Register'
+      bit_fields:
+      - { bit_assignment: { lsb: 0, width: 8 }, type: rw, initial_value: { default: 0 } }
+`;
+
 export function createSampleBlocks(): RegisterBlock[] {
   return parseBlockYaml(SAMPLE_YAML);
+}
+
+export function createUartCsrBlocks(): RegisterBlock[] {
+  return parseBlockYaml(UART_CSR_YAML);
 }

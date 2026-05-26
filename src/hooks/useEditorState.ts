@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import type { RegisterBlock, Register, BitField, IndirectQualifier, ProjectConfig } from '../types/rggen';
 import { NO_INITIAL_VALUE_TYPES } from '../types/rggen';
 import { parseBlockYaml, parseConfigYaml } from '../utils/yamlParser';
-import { createSampleBlocks } from '../utils/sampleData';
+import { createSampleBlocks, createUartCsrBlocks } from '../utils/sampleData';
 
 const STORAGE_KEY = 'rggen-webui-state';
 
@@ -250,6 +250,11 @@ export function useEditorState() {
     setState({ blocks, activeBlockId: blocks[0].id, config: DEFAULT_CONFIG });
   };
 
+  const loadUartCsr = () => {
+    const blocks = createUartCsrBlocks();
+    setState({ blocks, activeBlockId: blocks[0].id, config: DEFAULT_CONFIG });
+  };
+
   const importBlockFile = async (files: File | File[]): Promise<void> => {
     const fileList = Array.isArray(files) ? files : [files];
     const allBlocks = (await Promise.all(fileList.map(async f => {
@@ -287,6 +292,6 @@ export function useEditorState() {
     addRegister, deleteRegister, updateRegister, toggleExpanded, expandRegister, expandAll, collapseAll,
     addBitField, deleteBitField, updateBitField,
     addQualifier, deleteQualifier, updateQualifier,
-    resetState, loadSample, importBlockFile, importConfigFile,
+    resetState, loadSample, loadUartCsr, importBlockFile, importConfigFile,
   };
 }
