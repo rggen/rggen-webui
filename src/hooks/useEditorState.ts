@@ -23,6 +23,14 @@ export function newBitField(): BitField {
     reference: '',
     sequenceSize: '',
     sequenceStep: '',
+    customSwRead: 'default',
+    customSwWrite: 'default',
+    customSwWriteOnce: false,
+    customHwWrite: false,
+    customHwSet: false,
+    customHwClear: false,
+    customReadTrigger: false,
+    customWriteTrigger: false,
     showAdvanced: false,
   };
 }

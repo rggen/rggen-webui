@@ -44,6 +44,14 @@ function yamlKeyToBfProp(s: string): keyof BitField | undefined {
   if (s.startsWith('width:')) return 'width';
   if (s.startsWith('sequence_size:')) return 'sequenceSize';
   if (s.startsWith('step:')) return 'sequenceStep';
+  if (s.startsWith('sw_write_once:')) return 'customSwWriteOnce';
+  if (s.startsWith('sw_write:')) return 'customSwWrite';
+  if (s.startsWith('sw_read:')) return 'customSwRead';
+  if (s.startsWith('hw_write:')) return 'customHwWrite';
+  if (s.startsWith('hw_set:')) return 'customHwSet';
+  if (s.startsWith('hw_clear:')) return 'customHwClear';
+  if (s.startsWith('read_trigger:')) return 'customReadTrigger';
+  if (s.startsWith('write_trigger:')) return 'customWriteTrigger';
   return undefined;
 }
 
@@ -57,17 +65,6 @@ function yamlKeyToConfigField(s: string): keyof ProjectConfig | undefined {
 
 // --- YAML value builders ---
 
-function buildRegisterType(reg: Register): string | null {
-  if (reg.type === 'default') return null;
-  if (reg.type === 'indirect') {
-    const quals = reg.indirectQualifiers.map(q =>
-      q.fixedValue !== '' ? `[${q.bitFieldRef}, ${q.fixedValue}]` : q.bitFieldRef
-    );
-    return `[indirect${quals.length > 0 ? ', ' + quals.join(', ') : ''}]`;
-  }
-  return reg.type;
-}
-
 function buildRegisterSize(reg: Register): string | null {
   if (!reg.arraySize) return null;
   const dims = reg.arraySize.split(',').map(s => s.trim()).filter(Boolean);
@@ -77,6 +74,40 @@ function buildRegisterSize(reg: Register): string | null {
 }
 
 // --- Block YAML builder (pure text) ---
+
+function buildIndirectTypeLines(reg: Register, lines: string[], pfx: string): void {
+  const inner = `${pfx}  `;
+  lines.push(`${pfx}type:`);
+  lines.push(`${inner}- indirect`);
+  for (const q of reg.indirectQualifiers) {
+    lines.push(q.fixedValue !== '' ? `${inner}- [${q.bitFieldRef}, ${q.fixedValue}]` : `${inner}- ${q.bitFieldRef}`);
+  }
+}
+
+function buildCustomTypeLines(bf: BitField, lines: string[], pfx: string): void {
+  const opts: [string, string][] = [];
+  if (bf.customSwRead !== 'default')  opts.push(['sw_read',        bf.customSwRead]);
+  if (bf.customSwWrite !== 'default') opts.push(['sw_write',       bf.customSwWrite]);
+  if (bf.customSwWriteOnce)           opts.push(['sw_write_once',  'true']);
+  if (bf.customHwWrite)               opts.push(['hw_write',       'true']);
+  if (bf.customHwSet)                 opts.push(['hw_set',         'true']);
+  if (bf.customHwClear)               opts.push(['hw_clear',       'true']);
+  if (bf.customReadTrigger)           opts.push(['read_trigger',   'true']);
+  if (bf.customWriteTrigger)          opts.push(['write_trigger',  'true']);
+
+  if (opts.length === 0) {
+    lines.push(`${pfx}type: custom`);
+    return;
+  }
+
+  const inner = `${pfx}  `;
+  lines.push(`${pfx}type:`);
+  lines.push(`${inner}- custom`);
+  lines.push(`${inner}- ${opts[0][0]}: ${opts[0][1]}`);
+  for (let i = 1; i < opts.length; i++) {
+    lines.push(`${inner}  ${opts[i][0]}: ${opts[i][1]}`);
+  }
+}
 
 function buildBitFieldLines(bf: BitField, lines: string[], indent: string): void {
   const pfx = `${indent}  `;
@@ -95,7 +126,11 @@ function buildBitFieldLines(bf: BitField, lines: string[], indent: string): void
     lines.push(`${pfx}  sequence_size: ${bf.sequenceSize}`);
     if (bf.sequenceStep !== '') lines.push(`${pfx}  step: ${bf.sequenceStep}`);
   }
-  push(`type: ${bf.type}`);
+  if (bf.type === 'custom') {
+    buildCustomTypeLines(bf, lines, pfx);
+  } else {
+    push(`type: ${bf.type}`);
+  }
   if (!NO_INITIAL_VALUE_TYPES.has(bf.type) && bf.initialValue !== '') {
     const val = bf.parameterize ? `{ default: ${bf.initialValue} }` : bf.initialValue;
     push(`initial_value: ${val}`);
@@ -108,8 +143,11 @@ function buildRegisterLines(reg: Register, lines: string[], indent: string): voi
   const pfx = `${indent}  `;
   lines.push(`${indent}- name: ${reg.name}`);
   if (reg.offsetAddress) lines.push(`${pfx}offset_address: 0x${reg.offsetAddress}`);
-  const regType = buildRegisterType(reg);
-  if (regType) lines.push(`${pfx}type: ${regType}`);
+  if (reg.type === 'indirect') {
+    buildIndirectTypeLines(reg, lines, pfx);
+  } else if (reg.type !== 'default') {
+    lines.push(`${pfx}type: ${reg.type}`);
+  }
   const regSize = buildRegisterSize(reg);
   if (regSize) lines.push(`${pfx}size: ${regSize}`);
   if (reg.comment) lines.push(`${pfx}comment: '${reg.comment}'`);
@@ -150,13 +188,17 @@ function buildConfigLines(config: ProjectConfig): string[] {
 //
 // Indentation structure of generated block YAML:
 //   0: register_blocks:
-//   2:   - name: <block>          ← block item (only one per file)
+//   2:   - name: <block>             ← block item (only one per file)
 //   4:     bus_width / registers / etc.
-//   4:     - name: <register>     ← register item  (indent=4, starts with "- ")
-//   6:       offset_address / bit_fields / etc.
-//   6:       - name: <bitfield>   ← bitfield item  (indent=6, starts with "- ")
-//   8:         bit_assignment / type / etc.
-//  10:           lsb / width / etc. (bit_assignment sub-fields)
+//   4:     - name: <register>        ← register item  (indent=4, starts with "- ")
+//   6:       offset_address / type (simple) / bit_fields / etc.
+//   6:       type:                   ← indirect type header
+//   8:         - indirect / qualifiers  ← indirect type block (indent=8, starts with "- ")
+//   6:       - name: <bitfield>      ← bitfield item  (indent=6, starts with "- ")
+//   8:         bit_assignment / type (simple or custom header) / etc.
+//  10:           lsb / width / etc.  (bit_assignment sub-fields, no "- ")
+//  10:           - custom / options  (custom type block, starts with "- ")
+//  12:             subsequent option keys (custom type mapping continuation)
 
 function scanBlockSourceMap(lines: string[], block: RegisterBlock): BlockSourceMap {
   const map: BlockSourceMap = new Map();
@@ -185,16 +227,31 @@ function scanBlockSourceMap(lines: string[], block: RegisterBlock): BlockSourceM
 
     const bf = bfIndex >= 0 ? reg.bitFields[bfIndex] : undefined;
     if (bf) {
+      let bfProperty: keyof BitField | undefined;
+      if (indent === 10 && s.startsWith('- ')) {
+        // Inside custom type block: "- custom" maps to 'type', "- sw_read: ..." maps to the option
+        const content = s.slice(2);
+        bfProperty = content === 'custom' ? 'type' : yamlKeyToBfProp(content);
+      } else {
+        // indent=8 (regular bf props), indent=10 without "- " (bit_assignment sub-fields),
+        // indent=12 (custom option continuation)
+        bfProperty = yamlKeyToBfProp(s);
+      }
       map.set(i + 1, {
         kind: 'bitfield',
         blockId: block.id,
         registerId: reg.id,
         bitFieldId: bf.id,
-        bfProperty: yamlKeyToBfProp(s),
+        bfProperty,
       });
     } else {
-      const property = yamlKeyToRegProp(s);
-      if (property) map.set(i + 1, { kind: 'register', blockId: block.id, registerId: reg.id, property });
+      if (indent === 8 && s.startsWith('- ')) {
+        // Inside indirect type block
+        map.set(i + 1, { kind: 'register', blockId: block.id, registerId: reg.id, property: 'indirectQualifiers' });
+      } else {
+        const property = yamlKeyToRegProp(s);
+        if (property) map.set(i + 1, { kind: 'register', blockId: block.id, registerId: reg.id, property });
+      }
     }
   });
 

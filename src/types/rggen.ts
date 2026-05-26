@@ -15,7 +15,7 @@ export const BIT_FIELD_TYPES = [
   'woc', 'wos',
   'w0crs', 'w1crs', 'wcrs',
   'w0src', 'w1src', 'wsrc',
-  'counter', 'reserved',
+  'counter', 'custom', 'reserved',
 ] as const;
 
 export type BitFieldType = typeof BIT_FIELD_TYPES[number];
@@ -24,6 +24,17 @@ export type BitFieldType = typeof BIT_FIELD_TYPES[number];
 export const NO_INITIAL_VALUE_TYPES: ReadonlySet<BitFieldType> = new Set([
   'ro', 'rotrg', 'w0trg', 'w1trg', 'row0trg', 'row1trg', 'reserved',
 ] as BitFieldType[]);
+
+export const SW_READ_VALUES = ['default', 'none', 'clear', 'set'] as const;
+export type CustomSwRead = typeof SW_READ_VALUES[number];
+
+export const SW_WRITE_VALUES = [
+  'default', 'none',
+  'clear', 'clear_0', 'clear_1',
+  'set', 'set_0', 'set_1',
+  'toggle_0', 'toggle_1',
+] as const;
+export type CustomSwWrite = typeof SW_WRITE_VALUES[number];
 
 export interface IndirectQualifier {
   id: string;
@@ -43,6 +54,14 @@ export interface BitField {
   reference: string;
   sequenceSize: string;
   sequenceStep: string;
+  customSwRead: CustomSwRead;
+  customSwWrite: CustomSwWrite;
+  customSwWriteOnce: boolean;
+  customHwWrite: boolean;
+  customHwSet: boolean;
+  customHwClear: boolean;
+  customReadTrigger: boolean;
+  customWriteTrigger: boolean;
   showAdvanced: boolean;
 }
 

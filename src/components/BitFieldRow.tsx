@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
-import type { BitField, BitFieldType } from '../types/rggen';
-import { BIT_FIELD_TYPES, NO_INITIAL_VALUE_TYPES } from '../types/rggen';
+import type { BitField, BitFieldType, CustomSwRead, CustomSwWrite } from '../types/rggen';
+import { BIT_FIELD_TYPES, NO_INITIAL_VALUE_TYPES, SW_READ_VALUES, SW_WRITE_VALUES } from '../types/rggen';
 
 interface Props {
   bitField: BitField;
@@ -29,6 +29,7 @@ export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChan
     const willHaveInit = !NO_INITIAL_VALUE_TYPES.has(newType);
     if (willHaveInit && bitField.initialValue === '') updates.initialValue = '0';
     if (!willHaveInit) updates.initialValue = '';
+    if (newType === 'custom') updates.showAdvanced = true;
     onChange(updates);
   };
 
@@ -148,6 +149,55 @@ export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChan
                   onChange={e => onChange({ reference: e.target.value })}
                 />
               </div>
+              {bitField.type === 'custom' && (
+                <div className="flex flex-col gap-2">
+                  <span className="text-gray-600 font-medium">Custom:</span>
+                  <div className="flex flex-wrap gap-4 ml-4">
+                    <label className="flex items-center gap-1">
+                      <span className="text-gray-500">SW Read</span>
+                      <select
+                        className={`border border-gray-300 rounded px-1 py-0.5 focus:outline-none focus:border-red-400 ${hl('customSwRead')}`}
+                        value={bitField.customSwRead}
+                        onChange={e => onChange({ customSwRead: e.target.value as CustomSwRead })}
+                      >
+                        {SW_READ_VALUES.map(v => <option key={v} value={v}>{v}</option>)}
+                      </select>
+                    </label>
+                    <label className="flex items-center gap-1">
+                      <span className="text-gray-500">SW Write</span>
+                      <select
+                        className={`border border-gray-300 rounded px-1 py-0.5 focus:outline-none focus:border-red-400 ${hl('customSwWrite')}`}
+                        value={bitField.customSwWrite}
+                        onChange={e => onChange({ customSwWrite: e.target.value as CustomSwWrite })}
+                      >
+                        {SW_WRITE_VALUES.map(v => <option key={v} value={v}>{v}</option>)}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="flex flex-wrap gap-4 ml-4">
+                    {(
+                      [
+                        ['customSwWriteOnce', 'SW Write Once'],
+                        ['customHwWrite',     'HW Write'],
+                        ['customHwSet',       'HW Set'],
+                        ['customHwClear',     'HW Clear'],
+                        ['customReadTrigger', 'Read Trigger'],
+                        ['customWriteTrigger','Write Trigger'],
+                      ] as [keyof BitField, string][]
+                    ).map(([key, label]) => (
+                      <label key={key} className={`flex items-center gap-1 ${hl(key)}`}>
+                        <input
+                          type="checkbox"
+                          checked={bitField[key] as boolean}
+                          onChange={e => onChange({ [key]: e.target.checked })}
+                          className="accent-red-700"
+                        />
+                        <span className="text-gray-500">{label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </td>
         </tr>

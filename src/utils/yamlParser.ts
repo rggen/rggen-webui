@@ -1,6 +1,6 @@
 import * as yaml from 'js-yaml';
-import type { RegisterBlock, Register, BitField, IndirectQualifier, ProjectConfig, BitFieldType, RegisterType } from '../types/rggen';
-import { BIT_FIELD_TYPES, NO_INITIAL_VALUE_TYPES } from '../types/rggen';
+import type { RegisterBlock, Register, BitField, IndirectQualifier, ProjectConfig, BitFieldType, RegisterType, CustomSwRead, CustomSwWrite } from '../types/rggen';
+import { BIT_FIELD_TYPES, NO_INITIAL_VALUE_TYPES, SW_READ_VALUES, SW_WRITE_VALUES } from '../types/rggen';
 
 const REGISTER_TYPES = new Set<string>(['default', 'rw', 'indirect', 'external', 'reserved', 'maskable']);
 
@@ -51,18 +51,61 @@ function parseBitAssignment(v: unknown, path: string) {
   };
 }
 
+const SW_READ_SET  = new Set<string>(SW_READ_VALUES);
+const SW_WRITE_SET = new Set<string>(SW_WRITE_VALUES);
+
+function parseCustomOptions(typeArr: unknown[], path: string): Partial<BitField> {
+  const optObj: Record<string, unknown> = {};
+  for (let i = 1; i < typeArr.length; i++) {
+    const item = typeArr[i];
+    if (typeof item === 'object' && item !== null && !Array.isArray(item))
+      Object.assign(optObj, item);
+  }
+  checkFields(optObj, ['sw_read', 'sw_write', 'sw_write_once', 'hw_write', 'hw_set', 'hw_clear', 'read_trigger', 'write_trigger'], `${path}[custom options]`);
+
+  const swRead  = optObj.sw_read  !== undefined ? String(optObj.sw_read)  : 'default';
+  const swWrite = optObj.sw_write !== undefined ? String(optObj.sw_write) : 'default';
+  if (!SW_READ_SET.has(swRead))   throw new Error(`${path}.sw_read: unknown value '${swRead}'`);
+  if (!SW_WRITE_SET.has(swWrite)) throw new Error(`${path}.sw_write: unknown value '${swWrite}'`);
+
+  return {
+    customSwRead:      swRead as CustomSwRead,
+    customSwWrite:     swWrite as CustomSwWrite,
+    customSwWriteOnce: optObj.sw_write_once === true,
+    customHwWrite:     optObj.hw_write      === true,
+    customHwSet:       optObj.hw_set        === true,
+    customHwClear:     optObj.hw_clear      === true,
+    customReadTrigger:  optObj.read_trigger  === true,
+    customWriteTrigger: optObj.write_trigger === true,
+  };
+}
+
+function parseBitFieldType(v: unknown, path: string): { type: BitFieldType; customOpts: Partial<BitField> } {
+  if (typeof v === 'string') {
+    if (!BIT_FIELD_TYPE_SET.has(v))
+      throw new Error(`${path}: unknown bit field type '${v}'`);
+    return { type: v as BitFieldType, customOpts: {} };
+  }
+  if (Array.isArray(v)) {
+    if (v[0] !== 'custom')
+      throw new Error(`${path}: array type must start with 'custom'`);
+    return { type: 'custom', customOpts: parseCustomOptions(v, path) };
+  }
+  throw new Error(`${path}: invalid type format`);
+}
+
 function parseBitField(v: unknown, path: string): BitField {
   const o = obj(v, path);
   checkFields(o, ['name', 'bit_assignment', 'type', 'initial_value', 'reference', 'comment'], path);
 
-  const type = str(o.type, `${path}.type`);
-  if (!BIT_FIELD_TYPE_SET.has(type))
-    throw new Error(`${path}.type: unknown bit field type '${type}'`);
+  if (o.type === undefined)
+    throw new Error(`${path}.type: required`);
+  const { type, customOpts } = parseBitFieldType(o.type, `${path}.type`);
 
   if (o.bit_assignment === undefined)
     throw new Error(`${path}.bit_assignment: required`);
   const ba = parseBitAssignment(o.bit_assignment, `${path}.bit_assignment`);
-  const noInit = NO_INITIAL_VALUE_TYPES.has(type as BitFieldType);
+  const noInit = NO_INITIAL_VALUE_TYPES.has(type);
   const reference = o.reference !== undefined ? str(o.reference, `${path}.reference`) : '';
   const sequenceSize = ba.sequenceSize;
 
@@ -86,12 +129,21 @@ function parseBitField(v: unknown, path: string): BitField {
     width:        ba.width,
     sequenceSize,
     sequenceStep: ba.sequenceStep,
-    type:         type as BitFieldType,
+    type,
     initialValue,
     parameterize,
     reference,
     comment:      o.comment !== undefined ? str(o.comment, `${path}.comment`) : '',
-    showAdvanced: reference !== '' || sequenceSize !== '',
+    customSwRead:      'default',
+    customSwWrite:     'default',
+    customSwWriteOnce: false,
+    customHwWrite:     false,
+    customHwSet:       false,
+    customHwClear:     false,
+    customReadTrigger:  false,
+    customWriteTrigger: false,
+    ...customOpts,
+    showAdvanced: reference !== '' || sequenceSize !== '' || type === 'custom',
   };
 }
 

@@ -126,6 +126,19 @@ register_blocks:
       - { name: bit_field_0, bit_assignment: { lsb:  0, width: 1 }, type: rw, initial_value: 0 }
       - { name: bit_field_1, bit_assignment: { lsb: 32, width: 1 }, type: rw, initial_value: 0 }
 
+    - name: register_13
+      offset_address: 0x60
+      bit_fields:
+      - { name: bit_field_0, bit_assignment: { width: 2 }, initial_value: 0, type: [custom] }
+      - { name: bit_field_1, bit_assignment: { width: 2 }, type: [custom, sw_write: none] }
+      - { name: bit_field_2, bit_assignment: { width: 2 }, initial_value: 0, type: [custom, sw_write_once: true] }
+      - { name: bit_field_3, bit_assignment: { width: 2 }, initial_value: 0, type: [custom, write_trigger: true, read_trigger: true] }
+      - { name: bit_field_4, bit_assignment: { width: 2 }, initial_value: 0, type: [custom, sw_write: set_1, sw_read: clear] }
+      - { name: bit_field_5, bit_assignment: { width: 2 }, initial_value: 0, type: [custom, sw_write: clear_1, sw_read: set] }
+      - { name: bit_field_6, bit_assignment: { width: 2 }, initial_value: 0, type: [custom, sw_write: set_1, hw_clear: true] }
+      - { name: bit_field_7, bit_assignment: { width: 2 }, initial_value: 0, type: [custom, sw_write: clear_1, hw_set: true] }
+      - { name: bit_field_8, bit_assignment: { width: 2 }, initial_value: 0, type: [custom, hw_write: true] }
+
     - name: register_14
       offset_address: 0x64
       bit_fields:
