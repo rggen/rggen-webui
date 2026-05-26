@@ -45,7 +45,7 @@ export function BlockSettings({ block, onChange, highlightedField }: Props) {
         <input
           className={`border border-gray-300 rounded px-2 py-1 w-56 focus:outline-none focus:border-blue-400 ${hl('comment')}`}
           value={block.comment}
-          placeholder="optional"
+          placeholder="comment"
           onChange={e => onChange({ comment: e.target.value })}
         />
       </label>

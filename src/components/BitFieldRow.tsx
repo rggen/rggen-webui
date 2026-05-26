@@ -51,7 +51,6 @@ export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChan
           <input
             className="w-full outline-none bg-transparent"
             value={bitField.name}
-            placeholder="bit_field_0"
             onChange={e => onChange({ name: e.target.value })}
           />
         </td>

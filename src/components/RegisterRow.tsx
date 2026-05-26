@@ -83,7 +83,6 @@ export function RegisterRow({
           <input
             className="w-full outline-none bg-transparent"
             value={register.name}
-            placeholder="register_0"
             onChange={e => onChange({ name: e.target.value })}
           />
         </td>
