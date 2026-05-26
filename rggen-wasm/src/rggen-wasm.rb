@@ -21,35 +21,39 @@ end
 module RgGen
   module WASM
     class << self
-      def run(work_dir, input)
-        args = []
-        args << '--no-default-plugins'
-        args << '--plugin' << 'rggen/default_register_map.rb'
-        args << '--plugin' << 'rggen/systemverilog/rtl.rb'
-        args << '--plugin' << 'rggen/systemverilog/ral.rb'
-        args << '--plugin' << 'rggen/verilog.rb'
-        args << '--plugin' << 'rggen/veryl.rb'
-        args << '--plugin' << 'rggen/vhdl.rb'
-        args << '--plugin' << 'rggen/c_header.rb'
-        args << '--plugin' << 'rggen/markdown.rb'
-        args << '-o'       << File.join(work_dir, 'out')
+      def init
+        builder = RgGen::Core::Builder.create
 
+        plugins = [
+          'rggen/default_register_map.rb',
+          'rggen/systemverilog/rtl.rb',
+          'rggen/systemverilog/ral.rb',
+          'rggen/verilog.rb',
+          'rggen/veryl.rb',
+          'rggen/vhdl.rb',
+          'rggen/c_header.rb',
+          'rggen/markdown.rb'
+        ]
+        builder.load_plugins(plugins, true)
+        builder.enable_all
+
+        @builder = builder
+      end
+
+      def run(work_dir, input)
         maps_dir = File.join(work_dir, 'maps')
+        out_dir = File.join(work_dir, 'out')
 
         FileUtils.rm_rf(work_dir)
         FileUtils.mkdir_p(work_dir)
         FileUtils.mkdir_p(maps_dir)
+        FileUtils.mkdir_p(out_dir)
 
         json = JSON.load(Base64.decode64(input))
-        write_file(work_dir, 'config.yaml', json['config']).then do |path|
-          args << '-c' << path
-        end
-        json['register_maps'].each do |register_map|
-          args << write_file(maps_dir, "#{register_map['name']}.yaml", register_map['yaml'])
-        end
+        config = load_config(work_dir, json)
+        maps = load_register_maps(maps_dir, config, json)
 
-        cli = RgGen::Core::CLI.new
-        cli.run(args)
+        generate_files(out_dir, config, maps)
 
         nil
       rescue ScriptError, StandardError => e
@@ -67,14 +71,40 @@ module RgGen
 
       private
 
+      attr_reader :builder
+
+      def load_config(work_dir, json)
+        path = write_file(work_dir, 'config.yaml', json['config'])
+        builder
+          .build_factory(:input, :configuration)
+          .create([path])
+      end
+
+      def load_register_maps(maps_dir, config, json)
+        paths = json['register_maps'].map do |register_map|
+          write_file(maps_dir, "#{register_map['name']}.yaml", register_map['yaml'])
+        end
+        builder
+          .build_factory(:input, :register_map)
+          .create(config, paths)
+      end
+
       def write_file(work_dir, file_name, contents)
         path = File.join(work_dir, file_name)
         File.write(path, contents)
         path
       end
+
+      def generate_files(out_dir, config, register_maps)
+        builder.build_factories(:output, []).each do |factory|
+          factory.create(config, register_maps).write_file(out_dir)
+        end
+      end
     end
   end
 end
+
+RgGen::WASM.init
 
 if $0 == __FILE__
   work_dir = ARGV[0]
@@ -87,7 +117,8 @@ if $0 == __FILE__
   hash['register_maps'] << { name: File.basename(register_map, '.*'), yaml: File.read(register_map) }
 
   input = Base64.encode64(hash.to_json)
-  RgGen::WASM.run(work_dir, input)
+  error = RgGen::WASM.run(work_dir, input)
+  abort error if error
 
   outputs = RgGen::WASM.collect_outputs(work_dir)
   JSON.load(Base64.decode64(outputs)).each do |path, contents|

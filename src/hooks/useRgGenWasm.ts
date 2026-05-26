@@ -16,21 +16,17 @@ export function useRgGenWasm() {
   const [status, setStatus] = useState<WasmStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const [errorLocation, setErrorLocation] = useState<ErrorLocation | null>(null);
-  // Cache only the compiled module — VM is recreated each run to avoid stale Ruby state
-  const moduleRef = useRef<WebAssembly.Module | null>(null);
+  // Cache VM — module compilation and Ruby initialization (including plugin loading) are done once
+  const vmRef = useRef<{ eval(code: string): unknown } | null>(null);
 
-  const ensureModule = async (): Promise<WebAssembly.Module> => {
-    if (moduleRef.current) return moduleRef.current;
+  const ensureVM = async () => {
+    if (vmRef.current) return vmRef.current;
     setStatus('loading');
     const mod = await WebAssembly.compileStreaming(fetch(`${import.meta.env.BASE_URL}rggen.wasm`));
-    moduleRef.current = mod;
-    return mod;
-  };
-
-  const createVM = async (mod: WebAssembly.Module) => {
     const { DefaultRubyVM } = await import('@ruby/wasm-wasi/dist/browser');
     const { vm } = await DefaultRubyVM(mod);
-    vm.eval(`require '/src/rggen-wasm.rb'`);
+    vm.eval(`require '/src/rggen-wasm.rb'`);  // calls RgGen::WASM.init internally
+    vmRef.current = vm;
     return vm;
   };
 
@@ -39,9 +35,9 @@ export function useRgGenWasm() {
     setErrorLocation(null);
     setStatus('loading');
     try {
-      const mod = await ensureModule();
+      const vm = await ensureVM();
       setStatus('running');
-      const vm = await createVM(mod);
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
 
       const inputObj = {
         config: generateConfigYaml(config),
@@ -103,7 +99,7 @@ export function useRgGenWasm() {
         setErrorLocation(null);
       }
 
-      setStatus(moduleRef.current ? 'ready' : 'idle');
+      setStatus(vmRef.current ? 'ready' : 'idle');
     }
   };
 

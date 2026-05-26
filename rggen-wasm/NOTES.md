@@ -18,17 +18,25 @@ bundle exec rbwasm pack rggen.wasm --dir ./src::/src -o rggen.wasm
 
 `@ruby/wasm-wasi` の `DefaultRubyVM` を使用する。
 
-- **WebAssembly.Module**（コンパイル済みモジュール）は初回のみ `fetch` + `compileStreaming` してキャッシュする
-- **VM インスタンス**は Generate を実行するたびに新規作成する（Ruby の状態が残留しないようにするため）
+- **VM インスタンス**は初回のみ生成してキャッシュし、2回目以降の Generate で使い回す
+- `require '/src/rggen-wasm.rb'` の末尾で `RgGen::WASM.init` が自動実行され、プラグインが builder にロードされる
+- 2回目以降の Generate では `RgGen::WASM.run` のみを呼ぶ（プラグインロードをスキップ）
+- `vm.eval()` は同期でメインスレッドをブロックするため、`setStatus('running')` の後に `setTimeout(0)` を挟んでブラウザに描画の機会を与える
 
 ```typescript
-// モジュールをキャッシュ
-const mod = await WebAssembly.compileStreaming(fetch(`${BASE_URL}rggen.wasm`));
+// VM をキャッシュ（モジュールコンパイル + Ruby 初期化 + プラグインロードは初回のみ）
+if (!vmRef.current) {
+  const mod = await WebAssembly.compileStreaming(fetch(`${BASE_URL}rggen.wasm`));
+  const { DefaultRubyVM } = await import('@ruby/wasm-wasi/dist/browser');
+  const { vm } = await DefaultRubyVM(mod);
+  vm.eval(`require '/src/rggen-wasm.rb'`);  // RgGen::WASM.init を内部で呼ぶ
+  vmRef.current = vm;
+}
 
-// VM は毎回新規作成
-const { DefaultRubyVM } = await import('@ruby/wasm-wasi/dist/browser');
-const { vm } = await DefaultRubyVM(mod);
-vm.eval(`require '/src/rggen-wasm.rb'`);
+// 生成前にブラウザへ描画の機会を渡す
+setStatus('running');
+await new Promise<void>(resolve => setTimeout(resolve, 0));
+vm.eval(`RgGen::WASM.run('/work', '${inputB64}')`);
 ```
 
 ---
