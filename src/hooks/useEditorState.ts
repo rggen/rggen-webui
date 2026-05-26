@@ -55,7 +55,7 @@ export function newBlock(index: number = 0): RegisterBlock {
   return {
     id: crypto.randomUUID(),
     name: `block_${index}`,
-    busWidth: 32,
+    busWidth: '',
     byteSize: '256',
     comment: '',
     registers: [newRegister()],

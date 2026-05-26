@@ -224,8 +224,12 @@ function parseBlock(v: unknown, path: string): RegisterBlock {
   const o = obj(v, path);
   checkFields(o, ['name', 'bus_width', 'byte_size', 'comment', 'registers'], path);
 
-  const busWidth = o.bus_width !== undefined ? num(o.bus_width, `${path}.bus_width`) : 32;
-  if (!BUS_WIDTHS.has(busWidth)) throw new Error(`${path}.bus_width: must be 8, 16, 32, or 64`);
+  let busWidth: 8 | 16 | 32 | 64 | '' = '';
+  if (o.bus_width !== undefined) {
+    const bw = num(o.bus_width, `${path}.bus_width`);
+    if (!BUS_WIDTHS.has(bw)) throw new Error(`${path}.bus_width: must be 8, 16, 32, or 64`);
+    busWidth = bw as 8 | 16 | 32 | 64;
+  }
 
   const registers: Register[] = [];
   if (o.registers !== undefined)
@@ -235,7 +239,7 @@ function parseBlock(v: unknown, path: string): RegisterBlock {
   return {
     id: crypto.randomUUID(),
     name:     o.name      !== undefined ? str(o.name,    `${path}.name`)    : '',
-    busWidth: busWidth as 8 | 16 | 32 | 64,
+    busWidth,
     byteSize: o.byte_size !== undefined ? String(o.byte_size)               : '',
     comment:  o.comment   !== undefined ? str(o.comment, `${path}.comment`) : '',
     registers,

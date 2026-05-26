@@ -26,8 +26,9 @@ export function BlockSettings({ block, onChange, highlightedField }: Props) {
         <select
           className={`border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-blue-400 ${hl('busWidth')}`}
           value={block.busWidth}
-          onChange={e => onChange({ busWidth: Number(e.target.value) as 8 | 16 | 32 | 64 })}
+          onChange={e => onChange({ busWidth: e.target.value === '' ? '' : Number(e.target.value) as 8 | 16 | 32 | 64 })}
         >
+          <option value="">(use config)</option>
           {[8, 16, 32, 64].map(w => <option key={w} value={w}>{w}</option>)}
         </select>
       </label>

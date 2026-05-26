@@ -162,7 +162,7 @@ function buildBlockLines(block: RegisterBlock): string[] {
   const lines: string[] = [];
   lines.push('register_blocks:');
   lines.push(`  - name: ${block.name}`);
-  if (block.busWidth !== 32) lines.push(`    bus_width: ${block.busWidth}`);
+  if (block.busWidth !== '') lines.push(`    bus_width: ${block.busWidth}`);
   if (block.byteSize) lines.push(`    byte_size: ${block.byteSize}`);
   if (block.comment) lines.push(`    comment: '${block.comment}'`);
   if (block.registers.length > 0) {

@@ -82,7 +82,7 @@ export interface Register {
 export interface RegisterBlock {
   id: string;
   name: string;
-  busWidth: 8 | 16 | 32 | 64;
+  busWidth: 8 | 16 | 32 | 64 | '';
   byteSize: string;
   comment: string;
   registers: Register[];
