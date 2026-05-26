@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import JSZip from 'jszip';
 import type { ProjectConfig, RegisterBlock } from '../types/rggen';
 import { generateConfigYaml, generateBlockYaml } from '../utils/yamlGenerator';
+import { generateIntegrationGuide } from '../utils/integrationGuide';
 
 type WasmStatus = 'idle' | 'loading' | 'ready' | 'running';
 
@@ -69,6 +70,7 @@ export function useRgGenWasm() {
         zip.file(`${block.name || 'block'}.yaml`, generateBlockYaml(block));
       }
       zip.file('VERSIONS', versionsText);
+      zip.file('INTEGRATION.txt', generateIntegrationGuide(__RGGEN_VERSIONS__));
 
       const blob = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(blob);

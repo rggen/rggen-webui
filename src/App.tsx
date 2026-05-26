@@ -7,6 +7,7 @@ import { BlockSettings } from './components/BlockSettings';
 import { ConfigSettings } from './components/ConfigSettings';
 import { RegisterTable } from './components/RegisterTable';
 import { YamlPreviewModal } from './components/YamlPreviewModal';
+import { IntegrationGuideModal } from './components/IntegrationGuideModal';
 import {
   generateBlockYaml, generateConfigYaml,
   generateBlockYamlWithSourceMap, generateConfigYamlWithSourceMap,
@@ -26,6 +27,7 @@ export default function App() {
   const state = useEditorState();
   const wasm = useRgGenWasm();
   const [showPreview, setShowPreview] = useState(false);
+  const [showIntegrationGuide, setShowIntegrationGuide] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
   const versionsRef = useRef<HTMLDivElement>(null);
 
@@ -157,6 +159,12 @@ export default function App() {
             Preview YAML
           </button>
           <button
+            className="px-3 py-1 border border-gray-300 hover:border-red-400 text-gray-500 hover:text-red-700 text-sm rounded"
+            onClick={() => setShowIntegrationGuide(true)}
+          >
+            Integration Guide
+          </button>
+          <button
             className="px-3 py-1 border border-red-300 hover:border-red-500 text-red-700 hover:text-red-900 text-sm rounded"
             onClick={handleDownload}
           >
@@ -213,6 +221,11 @@ export default function App() {
           highlightedField={errorLoc?.kind === 'block' && errorLoc.blockId === state.activeBlock.id ? errorLoc.blockProperty : undefined}
         />
       </div>
+
+      {/* Integration Guide modal */}
+      {showIntegrationGuide && (
+        <IntegrationGuideModal onClose={() => setShowIntegrationGuide(false)} />
+      )}
 
       {/* YAML Preview modal */}
       {showPreview && (

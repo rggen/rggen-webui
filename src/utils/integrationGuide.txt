@@ -1,0 +1,78 @@
+RgGen Integration Guide
+========================
+
+This guide explains how to integrate the generated RTL modules and RAL models
+into your project.
+
+For full details, see:
+  https://github.com/rggen/rggen/wiki/Use-Generated-RTL-Modules-and-RAL-Models
+
+
+RTL Modules
+-----------
+
+SystemVerilog
+
+  $ git clone https://github.com/rggen/rggen-sv-rtl.git
+  $ export RGGEN_SV_RTL_ROOT=`pwd`/rggen-sv-rtl
+  $ simulator -f ${RGGEN_SV_RTL_ROOT}/compile.f \
+              path/to/your_csr.sv path/to/your_design.sv
+
+Verilog
+
+  $ git clone https://github.com/rggen/rggen-verilog-rtl.git
+  $ export RGGEN_VERILOG_RTL_ROOT=`pwd`/rggen-verilog-rtl
+  $ simulator -f ${RGGEN_VERILOG_RTL_ROOT}/compile.f \
+              path/to/your_csr.v path/to/your_design.v
+
+VHDL
+
+  $ git clone https://github.com/rggen/rggen-vhdl-rtl.git
+  $ export RGGEN_VHDL_RTL_ROOT=`pwd`/rggen-vhdl-rtl
+  $ simulator -f ${RGGEN_VHDL_RTL_ROOT}/compile.f \
+              path/to/your_csr.vhd path/to/your_design.vhd
+
+Veryl
+
+Add the following to the [dependencies] section in your Veryl.toml:
+
+  [dependencies]
+  "rggen" = { github = "rggen/rggen-veryl-rtl", version = "{{VERYL_VERSION}}" }
+
+
+RAL Models
+----------
+
+  $ git clone https://github.com/rggen/rggen-sv-ral.git
+  $ export RGGEN_SV_RAL_ROOT=`pwd`/rggen-sv-ral
+  $ simulator -f ${RGGEN_SV_RAL_ROOT}/compile.f \
+              path/to/your_csr_ral_pkg.sv path/to/your_tb.sv
+
+Enhanced RAL (optional)
+
+TUE (https://github.com/taichi-ishitani/tue) provides extended UVM reg models.
+To use TUE as base classes:
+
+  $ git clone https://github.com/taichi-ishitani/tue.git
+  $ export TUE_HOME=`pwd`/tue
+  $ simulator \
+      +define+RGGEN_ENABLE_ENHANCED_RAL \
+      -f ${TUE_HOME}/compile.f \
+      -f ${RGGEN_SV_RAL_ROOT}/compile.f \
+      path/to/your_csr_ral_pkg.sv path/to/your_tb.sv
+
+Backdoor Access (optional)
+
+Generated RTL modules and RAL models support backdoor access without VPI routine.
+To enable backdoor access, define the RGGEN_ENABLE_BACKDOOR macro. Note that
+RGGEN_SV_RTL_ROOT is required even when using Verilog, VHDL, or Veryl RTL:
+
+  $ simulator \
+      +define+RGGEN_ENABLE_BACKDOOR \
+      -f ${RGGEN_SV_RTL_ROOT}/compile_backdoor.f \
+      -f ${RGGEN_SV_RAL_ROOT}/compile.f \
+      path/to/your_csr_ral_pkg.sv path/to/your_tb.sv
+
+Also set the HDL path root in your testbench:
+
+  ral_model.set_hdl_path_root("tb.dut.u_cfg_block_0");
