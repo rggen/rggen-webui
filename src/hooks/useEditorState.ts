@@ -246,13 +246,13 @@ export function useEditorState() {
   };
 
   const loadSample = () => {
-    const blocks = createSampleBlocks();
-    setState({ blocks, activeBlockId: blocks[0].id, config: DEFAULT_CONFIG });
+    const [sample] = createSampleBlocks();
+    setBlocks(prev => prev.map(b => b.id === activeBlockId ? { ...sample, id: b.id } : b));
   };
 
   const loadUartCsr = () => {
-    const blocks = createUartCsrBlocks();
-    setState({ blocks, activeBlockId: blocks[0].id, config: DEFAULT_CONFIG });
+    const [sample] = createUartCsrBlocks();
+    setBlocks(prev => prev.map(b => b.id === activeBlockId ? { ...sample, id: b.id } : b));
   };
 
   const importBlockFile = async (files: File | File[]): Promise<void> => {

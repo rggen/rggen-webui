@@ -159,8 +159,8 @@ export default function App() {
             {showSampleMenu && (
               <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded shadow-md min-w-max">
                 {[
-                  { label: 'block_0 (all field types)', action: () => { if (confirm('Load sample data? Current data will be replaced.')) { state.loadSample(); setShowSampleMenu(false); } } },
-                  { label: 'uart_csr (UART)',            action: () => { if (confirm('Load sample data? Current data will be replaced.')) { state.loadUartCsr(); setShowSampleMenu(false); } } },
+                  { label: 'block_0 (all field types)', action: () => { if (confirm('Load sample into current tab? Current block will be replaced.')) { state.loadSample(); setShowSampleMenu(false); } } },
+                  { label: 'uart_csr (UART)',            action: () => { if (confirm('Load sample into current tab? Current block will be replaced.')) { state.loadUartCsr(); setShowSampleMenu(false); } } },
                 ].map(({ label, action }) => (
                   <button
                     key={label}
