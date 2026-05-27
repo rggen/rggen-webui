@@ -153,7 +153,7 @@ export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChan
       </tr>
 
       {bitField.showAdvanced && (
-        <tr className={`border-b border-gray-100 ${highlighted ? 'bg-red-100' : 'bg-red-50'}`}>
+        <tr className={`border-b border-gray-100 ${highlighted ? 'bg-red-100' : 'bg-indigo-50'}`}>
           <td colSpan={8} className="px-8 py-2">
             <div className="flex flex-col gap-2 text-sm">
               <div className="flex flex-col gap-1">

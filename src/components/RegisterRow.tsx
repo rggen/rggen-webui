@@ -121,7 +121,7 @@ export function RegisterRow({
       </tr>
 
       {register.showAdvanced && (
-        <tr className="bg-red-50 border-b border-gray-200">
+        <tr className="bg-indigo-50 border-b border-gray-200">
           <td colSpan={7} className="px-6 py-2">
             <div className="flex flex-col gap-2 text-sm">
               <div className="flex items-start gap-4">
