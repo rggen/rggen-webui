@@ -116,7 +116,12 @@ export const HELP_CONTENT: Record<HelpLevel, HelpSection> = {
         ['custom',   'Fully configurable. SW read/write behavior, HW interactions, and trigger conditions are specified individually in the advanced options.'],
         ['reserved', 'Bits are reserved. Writes ignored, reads return 0.'],
       ]),
-      f('Initial Value', 'Reset value of the field. The checkbox marks it as a parameter in the generated RTL (output as { default: value }). Not applicable for types with no storage.'),
+      f('Initial Value', [
+        'Reset value of the field. Not applicable for types with no storage.',
+        'The checkbox marks it as a parameter in the generated RTL (output as { default: value }).',
+        'For sequence bit fields, enter comma-separated values (e.g. "0, 1, 2, 3"). Causes an error if parameterize is checked.',
+        'For array registers, expand Adv to set a per-element initial value. Each element also accepts comma-separated values for sequence bit fields. Parameterize and per-element are mutually exclusive.',
+      ]),
       f('Comment', 'Optional descriptive text.'),
       f('Sequence (advanced)', 'Generates an array of bit fields at consecutive bit positions. Size: number of elements. Step: bit distance between elements (defaults to field width).'),
       f('Reference (advanced)', 'For types that reference another bit field. Specify as register_name.bit_field_name.'),

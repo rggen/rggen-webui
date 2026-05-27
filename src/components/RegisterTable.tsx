@@ -19,8 +19,6 @@ interface Props {
   onAddQualifier: (regId: string) => void;
   onDeleteQualifier: (regId: string, qId: string) => void;
   onUpdateQualifier: (regId: string, qId: string, updates: Partial<IndirectQualifier>) => void;
-  onRegisterHelpClick?: () => void;
-  onBitFieldHelpClick?: () => void;
 }
 
 const th = 'px-2 py-1 text-xs font-medium text-gray-500 text-left border-r border-gray-200';
@@ -31,7 +29,6 @@ export function RegisterTable({
   onExpandAll, onCollapseAll,
   onAddBitField, onDeleteBitField, onUpdateBitField,
   onAddQualifier, onDeleteQualifier, onUpdateQualifier,
-  onRegisterHelpClick, onBitFieldHelpClick,
 }: Props) {
   return (
     <div className="flex-1 flex flex-col min-h-0">
@@ -64,7 +61,6 @@ export function RegisterTable({
                     onAddQualifier={() => onAddQualifier(reg.id)}
                     onDeleteQualifier={qId => onDeleteQualifier(reg.id, qId)}
                     onUpdateQualifier={(qId, updates) => onUpdateQualifier(reg.id, qId, updates)}
-                    onHelpClick={onRegisterHelpClick}
                   />
                   {reg.expanded && (
                     <BitFieldSubTable
@@ -74,7 +70,7 @@ export function RegisterTable({
                       onAddBitField={() => onAddBitField(reg.id)}
                       onDeleteBitField={bfId => onDeleteBitField(reg.id, bfId)}
                       onUpdateBitField={(bfId, updates) => onUpdateBitField(reg.id, bfId, updates)}
-                      onHelpClick={onBitFieldHelpClick}
+                      registerArraySize={reg.arraySize}
                     />
                   )}
                 </Fragment>

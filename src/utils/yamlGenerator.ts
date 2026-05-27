@@ -64,6 +64,25 @@ function yamlKeyToConfigField(s: string): keyof ProjectConfig | undefined {
 
 // --- YAML value builders ---
 
+function toYamlInline(v: unknown): string {
+  if (Array.isArray(v)) return `[${v.map(toYamlInline).join(', ')}]`;
+  return String(v);
+}
+
+function parseInitElement(s: string): unknown {
+  const parts = s.split(',').map(p => p.trim()).filter(Boolean);
+  if (parts.length > 1) return parts;
+  return parts[0] ?? '';
+}
+
+function reshapeFlat(flat: unknown[], dims: number[]): unknown {
+  if (dims.length <= 1) return flat;
+  const stride = Math.floor(flat.length / dims[0]);
+  return Array.from({ length: dims[0] }, (_, i) =>
+    reshapeFlat(flat.slice(i * stride, (i + 1) * stride), dims.slice(1))
+  );
+}
+
 function buildRegisterSize(reg: Register): string | null {
   if (!reg.arraySize) return null;
   const dims = reg.arraySize.split(',').map(s => s.trim()).filter(Boolean);
@@ -108,7 +127,7 @@ function buildCustomTypeLines(bf: BitField, lines: string[], pfx: string): void 
   }
 }
 
-function buildBitFieldLines(bf: BitField, lines: string[], indent: string): void {
+function buildBitFieldLines(bf: BitField, lines: string[], indent: string, regDims: number[] = []): void {
   const pfx = `${indent}  `;
   let first = true;
 
@@ -130,9 +149,22 @@ function buildBitFieldLines(bf: BitField, lines: string[], indent: string): void
   } else {
     push(`type: ${bf.type}`);
   }
-  if (!NO_INITIAL_VALUE_TYPES.has(bf.type) && bf.initialValue !== '') {
-    const val = bf.parameterize ? `{ default: ${bf.initialValue} }` : bf.initialValue;
-    push(`initial_value: ${val}`);
+  if (!NO_INITIAL_VALUE_TYPES.has(bf.type)) {
+    if (bf.parameterize && typeof bf.initialValue === 'string' && bf.initialValue !== '') {
+      push(`initial_value: { default: ${bf.initialValue} }`);
+    } else if (Array.isArray(bf.initialValue)) {
+      // per-element: each string may be comma-separated (sequence element)
+      const flat = bf.initialValue.map(parseInitElement).filter(v => v !== '');
+      if (flat.length > 0) {
+        const shaped = regDims.length > 1 ? reshapeFlat(flat, regDims) : flat;
+        push(`initial_value: ${toYamlInline(shaped)}`);
+      }
+    } else if (typeof bf.initialValue === 'string' && bf.initialValue !== '') {
+      // may be comma-separated sequence
+      const parts = bf.initialValue.split(',').map(p => p.trim()).filter(p => p !== '');
+      const val = parts.length > 1 ? `[${parts.join(', ')}]` : parts[0];
+      if (val) push(`initial_value: ${val}`);
+    }
   }
   if (bf.reference) push(`reference: ${bf.reference}`);
   if (bf.comment) push(`comment: '${bf.comment}'`);
@@ -151,9 +183,12 @@ function buildRegisterLines(reg: Register, lines: string[], indent: string): voi
   if (regSize) lines.push(`${pfx}size: ${regSize}`);
   if (reg.comment) lines.push(`${pfx}comment: '${reg.comment}'`);
   if (reg.bitFields.length > 0) {
+    const regDims = reg.arraySize
+      ? reg.arraySize.split(',').map(s => parseInt(s.trim(), 10) || 1)
+      : [];
     lines.push(`${pfx}bit_fields:`);
     for (const bf of reg.bitFields) {
-      buildBitFieldLines(bf, lines, pfx);
+      buildBitFieldLines(bf, lines, pfx, regDims);
     }
   }
 }

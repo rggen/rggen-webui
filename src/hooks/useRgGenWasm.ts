@@ -86,8 +86,8 @@ export function useRgGenWasm() {
       const displayMsg = raw.split('\n')[0].trim();
       setError(displayMsg);
 
-      // Error format: "-- filename: /work/<name>.yaml line N column M"
-      const fileMatch = displayMsg.match(/-- filename:\s+\/work\/([^\s/]+)\.yaml\s+line\s+(\d+)/);
+      // Error format: "-- filename: /work/maps/<name>.yaml line N column M"
+      const fileMatch = displayMsg.match(/-- filename:\s+\/work\/(?:[^\s]*\/)?([^\s/]+)\.yaml\s+line\s+(\d+)/);
       if (fileMatch) {
         const fileName   = fileMatch[1];
         const line       = Number(fileMatch[2]);

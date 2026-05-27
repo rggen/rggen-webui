@@ -13,11 +13,10 @@ interface Props {
   onAddQualifier: () => void;
   onDeleteQualifier: (qId: string) => void;
   onUpdateQualifier: (qId: string, updates: Partial<IndirectQualifier>) => void;
-  onHelpClick?: () => void;
 }
 
 const td = 'px-2 py-1 border-r border-gray-200 text-sm';
-const CELL_HL = 'outline outline-2 outline-red-500';
+const CELL_HL = 'ring-2 ring-inset ring-red-500';
 
 function splitDims(arraySize: string): string[] {
   if (!arraySize.trim()) return [];
@@ -28,7 +27,6 @@ export function RegisterRow({
   register, highlighted, highlightedProperty,
   onToggle, onChange, onDelete,
   onAddQualifier, onDeleteQualifier, onUpdateQualifier,
-  onHelpClick,
 }: Props) {
   const rowRef = useRef<HTMLTableRowElement>(null);
   const dims = splitDims(register.arraySize);
@@ -62,8 +60,7 @@ export function RegisterRow({
     <>
       <tr
         ref={rowRef}
-        className={`border-b border-gray-200 hover:bg-red-50 cursor-pointer ${highlighted ? 'bg-red-100' : ''}`}
-        onClick={onHelpClick}
+        className={`border-b border-gray-200 ${highlighted ? 'bg-red-100' : ''}`}
       >
         <td className="px-2 py-1 w-8 text-center border-r border-gray-200">
           <button
@@ -124,7 +121,7 @@ export function RegisterRow({
       </tr>
 
       {register.showAdvanced && (
-        <tr className="bg-red-50 border-b border-gray-200 cursor-pointer" onClick={onHelpClick}>
+        <tr className="bg-red-50 border-b border-gray-200">
           <td colSpan={7} className="px-6 py-2">
             <div className="flex flex-col gap-2 text-sm">
               <div className="flex items-start gap-4">

@@ -109,7 +109,7 @@ register_blocks:
       bit_fields:
       - { name: bit_field_0, bit_assignment: { lsb: 0, width: 2, sequence_size: 4, step: 8 }, type: rw, initial_value: 0 }
       - { name: bit_field_1, bit_assignment: { lsb: 2, width: 2, sequence_size: 4, step: 8 }, type: rw, initial_value: { default: 0 } }
-      - { name: bit_field_2, bit_assignment: { lsb: 4, width: 2, sequence_size: 4, step: 8 }, type: rw, initial_value: 0 }
+      - { name: bit_field_2, bit_assignment: { lsb: 4, width: 2, sequence_size: 4, step: 8 }, type: rw, initial_value: [[0, 1, 2, 3], [1, 2, 3, 0], [2, 3, 0, 1], [3, 0, 1, 2]] }
 
     - name: register_11
       offset_address: 0x50

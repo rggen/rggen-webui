@@ -9,10 +9,9 @@ interface Props {
   onChange: (updates: Partial<ProjectConfig>) => void;
   onImport: (file: File) => Promise<void>;
   highlightedField?: keyof ProjectConfig;
-  onHelpClick?: () => void;
 }
 
-export function ConfigSettings({ config, onChange, onImport, highlightedField, onHelpClick }: Props) {
+export function ConfigSettings({ config, onChange, onImport, highlightedField }: Props) {
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -24,10 +23,7 @@ export function ConfigSettings({ config, onChange, onImport, highlightedField, o
 
   return (
     <div className="flex items-center gap-4 px-4 py-2 bg-red-50 border-b border-red-200 text-sm flex-wrap">
-      <button
-        className="text-red-800 font-semibold text-xs uppercase tracking-wide hover:text-red-600"
-        onClick={onHelpClick}
-      >Config</button>
+      <span className="text-red-800 font-semibold text-xs uppercase tracking-wide">Config</span>
       <label className="flex items-center gap-2">
         <span className="text-gray-500 font-medium">Bus Width</span>
         <select

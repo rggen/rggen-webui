@@ -6,7 +6,7 @@ import { createSampleBlocks, createUartCsrBlocks } from '../utils/sampleData';
 
 const STORAGE_KEY = 'rggen-webui-state';
 
-export function defaultInitialValue(type: BitField['type']): string {
+export function defaultInitialValue(type: BitField['type']): string | string[] {
   return NO_INITIAL_VALUE_TYPES.has(type) ? '' : '0';
 }
 
@@ -19,6 +19,7 @@ export function newBitField(): BitField {
     type: 'rw',
     initialValue: '0',
     parameterize: false,
+    perElementInit: false,
     comment: '',
     reference: '',
     sequenceSize: '',

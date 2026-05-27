@@ -109,14 +109,31 @@ function parseBitField(v: unknown, path: string): BitField {
   const reference = o.reference !== undefined ? str(o.reference, `${path}.reference`) : '';
   const sequenceSize = ba.sequenceSize;
 
-  let initialValue = noInit ? '' : '0';
+  let initialValue: string | string[] = noInit ? '' : '0';
   let parameterize = false;
+  let perElementInit = false;
   if (o.initial_value !== undefined) {
     if (typeof o.initial_value === 'object' && !Array.isArray(o.initial_value) && o.initial_value !== null) {
+      // { default: value } — parameterized scalar
       const iv = o.initial_value as Record<string, unknown>;
       checkFields(iv, ['default'], `${path}.initial_value`);
       initialValue = iv.default !== undefined ? String(iv.default) : '0';
       parameterize = true;
+    } else if (Array.isArray(o.initial_value)) {
+      const flat = o.initial_value;
+      // 2D array: outer = register dims, inner = sequence → flatten outer, join inner with ', '
+      // 1D array: either register dim or sequence
+      if (flat.length > 0 && Array.isArray(flat[0])) {
+        // 2D: [[s0,s1,...], [s0,s1,...], ...]
+        initialValue = flat.map((row, i) => {
+          if (!Array.isArray(row)) throw new Error(`${path}.initial_value[${i}]: array expected`);
+          return (row as unknown[]).map(v => String(v)).join(', ');
+        });
+        perElementInit = true;
+      } else {
+        // 1D: either register-element scalars or sequence scalars
+        initialValue = flat.map(v => String(v)).join(', ');
+      }
     } else {
       initialValue = String(o.initial_value);
     }
@@ -132,6 +149,7 @@ function parseBitField(v: unknown, path: string): BitField {
     type,
     initialValue,
     parameterize,
+    perElementInit,
     reference,
     comment:      o.comment !== undefined ? str(o.comment, `${path}.comment`) : '',
     customSwRead:      'default',

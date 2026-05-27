@@ -2,8 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { HELP_CONTENT } from '../utils/helpContent';
 import type { HelpLevel, HelpItem } from '../utils/helpContent';
 
+const LEVELS: HelpLevel[] = ['config', 'block', 'register', 'bitfield'];
+
 interface Props {
   level: HelpLevel;
+  onLevelChange: (level: HelpLevel) => void;
   onClose: () => void;
 }
 
@@ -47,7 +50,7 @@ function OptionsItem({ item }: { item: Extract<HelpItem, { kind: 'options' }> })
   );
 }
 
-export function HelpPanel({ level, onClose }: Props) {
+export function HelpPanel({ level, onLevelChange, onClose }: Props) {
   const section = HELP_CONTENT[level];
   const [width, setWidth] = useState(320);
   const isResizing = useRef(false);
@@ -87,12 +90,19 @@ export function HelpPanel({ level, onClose }: Props) {
         onMouseDown={handleResizeStart}
       />
 
-      <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-white shrink-0">
-        <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
-          Help — {section.title}
-        </span>
+      <div className="flex items-center gap-1 px-3 py-2 border-b border-gray-200 bg-white shrink-0 flex-wrap">
+        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide mr-1">Help</span>
+        {LEVELS.map(l => (
+          <button
+            key={l}
+            className={`px-2 py-0.5 text-xs rounded ${level === l ? 'bg-red-700 text-white' : 'text-gray-500 hover:text-red-700 hover:bg-red-50'}`}
+            onClick={() => onLevelChange(l)}
+          >
+            {l.charAt(0).toUpperCase() + l.slice(1)}
+          </button>
+        ))}
         <button
-          className="text-gray-400 hover:text-gray-600 text-base leading-none"
+          className="ml-auto text-gray-400 hover:text-gray-600 text-base leading-none"
           onClick={onClose}
         >×</button>
       </div>

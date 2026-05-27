@@ -32,13 +32,8 @@ export default function App() {
   const [showIntegrationGuide, setShowIntegrationGuide] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
   const [showSampleMenu, setShowSampleMenu] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
+  const [showHelp, setShowHelp] = useState(true);
   const [helpLevel, setHelpLevel] = useState<HelpLevel>('config');
-
-  const openHelp = (level: HelpLevel) => {
-    setHelpLevel(level);
-    setShowHelp(true);
-  };
   const versionsRef = useRef<HTMLDivElement>(null);
   const sampleMenuRef = useRef<HTMLDivElement>(null);
 
@@ -83,13 +78,18 @@ export default function App() {
     return strip(lookupSourceMap(sourceMap, wasm.errorLocation.line));
   }, [wasm.errorLocation, state.config, state.blocks]);
 
-  // Side effects only: switch block tab and expand the relevant register
+  // Side effects only: switch block tab, expand the relevant register, and open Adv for error bit field
   useEffect(() => {
     if (!wasm.errorLocation || wasm.errorLocation.kind !== 'block') return;
     const block = state.blocks.find(b => (b.name || 'block') === wasm.errorLocation!.blockName);
     if (!block) return;
     state.setActiveBlockId(block.id);
-    if (errorLoc?.registerId) state.expandRegister(block.id, errorLoc.registerId);
+    if (errorLoc?.registerId) {
+      state.expandRegister(block.id, errorLoc.registerId);
+      if (errorLoc.bitFieldId) {
+        state.updateBitField(block.id, errorLoc.registerId, errorLoc.bitFieldId, { showAdvanced: true });
+      }
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wasm.errorLocation]);
 
@@ -260,8 +260,7 @@ export default function App() {
               onChange={state.updateConfig}
               onImport={state.importConfigFile}
               highlightedField={errorLoc?.kind === 'config' ? errorLoc.configField : undefined}
-              onHelpClick={() => openHelp('config')}
-            />
+              />
           </div>
 
           {/* Block tabs */}
@@ -282,7 +281,6 @@ export default function App() {
               block={state.activeBlock}
               onChange={updates => state.updateBlock(state.activeBlockId, updates)}
               highlightedField={errorLoc?.kind === 'block' && errorLoc.blockId === state.activeBlock.id ? errorLoc.blockProperty : undefined}
-              onHelpClick={() => openHelp('block')}
             />
           </div>
 
@@ -302,14 +300,12 @@ export default function App() {
             onAddQualifier={regId => state.addQualifier(state.activeBlockId, regId)}
             onDeleteQualifier={(regId, qId) => state.deleteQualifier(state.activeBlockId, regId, qId)}
             onUpdateQualifier={(regId, qId, updates) => state.updateQualifier(state.activeBlockId, regId, qId, updates)}
-            onRegisterHelpClick={() => openHelp('register')}
-            onBitFieldHelpClick={() => openHelp('bitfield')}
           />
         </div>
 
         {/* Right: Help panel */}
         {showHelp && (
-          <HelpPanel level={helpLevel} onClose={() => setShowHelp(false)} />
+          <HelpPanel level={helpLevel} onLevelChange={setHelpLevel} onClose={() => setShowHelp(false)} />
         )}
       </div>
     </div>

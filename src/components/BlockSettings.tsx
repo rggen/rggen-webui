@@ -6,18 +6,14 @@ interface Props {
   block: RegisterBlock;
   onChange: (updates: Partial<RegisterBlock>) => void;
   highlightedField?: keyof RegisterBlock;
-  onHelpClick?: () => void;
 }
 
-export function BlockSettings({ block, onChange, highlightedField, onHelpClick }: Props) {
+export function BlockSettings({ block, onChange, highlightedField }: Props) {
   const hl = (field: keyof RegisterBlock) => highlightedField === field ? HIGHLIGHT : '';
 
   return (
     <div className="flex items-center gap-4 px-4 py-2 bg-white border-b border-gray-200 text-sm flex-wrap">
-      <button
-        className="text-gray-800 font-semibold text-xs uppercase tracking-wide hover:text-red-700"
-        onClick={onHelpClick}
-      >Block</button>
+      <span className="text-gray-800 font-semibold text-xs uppercase tracking-wide">Block</span>
       <label className="flex items-center gap-2">
         <span className="text-gray-500 font-medium">Name</span>
         <input

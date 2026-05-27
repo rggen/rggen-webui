@@ -8,19 +8,23 @@ interface Props {
   highlightedProperty?: keyof BitField;
   onChange: (updates: Partial<BitField>) => void;
   onDelete: () => void;
-  onHelpClick?: () => void;
+  regTotalElements?: number;
 }
 
 const td = 'px-2 py-1 border-r border-gray-200 text-sm';
-const CELL_HL = 'outline outline-2 outline-red-500';
+const CELL_HL = 'ring-2 ring-inset ring-red-500';
+const ADV_HL = 'rounded border-2 border-red-500';
 
-export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChange, onDelete, onHelpClick }: Props) {
+export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChange, onDelete, regTotalElements = 1 }: Props) {
   const rowRef = useRef<HTMLTableRowElement>(null);
   const noInitVal = NO_INITIAL_VALUE_TYPES.has(bitField.type);
+  const canPerElement = regTotalElements > 1 && !noInitVal;
+  const usePerElement = canPerElement && bitField.perElementInit;
 
   useEffect(() => {
     if (highlighted) rowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [highlighted]);
+
 
   const hl = (prop: keyof BitField) =>
     highlightedProperty === prop ? CELL_HL : '';
@@ -34,12 +38,40 @@ export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChan
     onChange(updates);
   };
 
+  const handleParameterizeChange = (checked: boolean) => {
+    const updates: Partial<BitField> = { parameterize: checked };
+    if (checked) {
+      updates.perElementInit = false;
+      if (Array.isArray(bitField.initialValue)) updates.initialValue = '0';
+    }
+    onChange(updates);
+  };
+
+  const handlePerElementInitChange = (checked: boolean) => {
+    const updates: Partial<BitField> = { perElementInit: checked };
+    if (!checked) {
+      updates.initialValue = '0';
+    } else {
+      updates.parameterize = false;
+    }
+    onChange(updates);
+  };
+
+  const handlePerElementChange = (i: number, val: string) => {
+    const current = Array.isArray(bitField.initialValue) ? bitField.initialValue : [];
+    const arr = Array.from({ length: regTotalElements }, (_, j) => current[j] ?? '');
+    arr[i] = val;
+    onChange({ initialValue: arr });
+  };
+
+  const scalarValue = typeof bitField.initialValue === 'string' ? bitField.initialValue : '';
+  const perElementDisabled = bitField.parameterize;
+
   return (
     <>
       <tr
         ref={rowRef}
-        className={`border-b border-gray-100 hover:bg-gray-100 cursor-pointer ${highlighted ? 'bg-red-100 hover:bg-red-100' : 'bg-gray-50'}`}
-        onClick={onHelpClick}
+        className={`border-b border-gray-100 ${highlighted ? 'bg-red-100' : 'bg-gray-50'}`}
       >
         <td className="px-2 py-1 w-20 text-center">
           <button
@@ -86,10 +118,14 @@ export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChan
         <td className={`${td} w-24 ${hl('initialValue')}`}>
           <div className="flex items-center gap-1">
             <input
-              className={`w-full outline-none font-mono ${noInitVal ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-transparent'}`}
-              value={bitField.initialValue}
-              placeholder={noInitVal ? '-' : '0'}
-              disabled={noInitVal}
+              className={`w-full outline-none font-mono ${
+                noInitVal || usePerElement
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-transparent'
+              }`}
+              value={usePerElement ? '' : scalarValue}
+              placeholder={noInitVal ? '-' : usePerElement ? 'see Adv' : '0'}
+              disabled={noInitVal || usePerElement}
               onChange={e => onChange({ initialValue: e.target.value })}
             />
             {!noInitVal && (
@@ -97,7 +133,7 @@ export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChan
                 type="checkbox"
                 title="Parameterize initial value (outputs as { default: value })"
                 checked={bitField.parameterize}
-                onChange={e => onChange({ parameterize: e.target.checked })}
+                onChange={e => handleParameterizeChange(e.target.checked)}
                 className="accent-red-700 shrink-0"
               />
             )}
@@ -117,38 +153,75 @@ export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChan
       </tr>
 
       {bitField.showAdvanced && (
-        <tr className={`border-b border-gray-100 cursor-pointer ${highlighted ? 'bg-red-50' : 'bg-red-50'}`} onClick={onHelpClick}>
+        <tr className={`border-b border-gray-100 ${highlighted ? 'bg-red-100' : 'bg-red-50'}`}>
           <td colSpan={8} className="px-8 py-2">
             <div className="flex flex-col gap-2 text-sm">
-              <div className="flex items-center gap-4">
-                <span className="text-gray-600 font-medium w-20">Sequence:</span>
-                <label className="flex items-center gap-1">
-                  <span className="text-gray-500">Size</span>
-                  <input
-                    className={`border border-gray-300 rounded px-2 py-0.5 w-20 focus:outline-none focus:border-red-400 ${hl('sequenceSize')}`}
-                    value={bitField.sequenceSize}
-                    placeholder="e.g. 4"
-                    onChange={e => onChange({ sequenceSize: e.target.value })}
-                  />
-                </label>
-                <label className="flex items-center gap-1">
-                  <span className="text-gray-500">Step</span>
-                  <input
-                    className={`border border-gray-300 rounded px-2 py-0.5 w-20 focus:outline-none focus:border-red-400 ${hl('sequenceStep')}`}
-                    value={bitField.sequenceStep}
-                    placeholder="e.g. 8"
-                    onChange={e => onChange({ sequenceStep: e.target.value })}
-                  />
-                </label>
+              <div className="flex flex-col gap-1">
+                <span className="text-gray-600 font-medium">Sequence:</span>
+                <div className="flex items-center gap-4 ml-4">
+                  <label className="flex items-center gap-1">
+                    <span className="text-gray-500">Size</span>
+                    <input
+                      className={`border border-gray-300 rounded px-2 py-0.5 w-20 focus:outline-none focus:border-red-400 ${hl('sequenceSize')}`}
+                      value={bitField.sequenceSize}
+                      placeholder="e.g. 4"
+                      onChange={e => onChange({ sequenceSize: e.target.value })}
+                    />
+                  </label>
+                  <label className="flex items-center gap-1">
+                    <span className="text-gray-500">Step</span>
+                    <input
+                      className={`border border-gray-300 rounded px-2 py-0.5 w-20 focus:outline-none focus:border-red-400 ${hl('sequenceStep')}`}
+                      value={bitField.sequenceStep}
+                      placeholder="e.g. 8"
+                      onChange={e => onChange({ sequenceStep: e.target.value })}
+                    />
+                  </label>
+                </div>
               </div>
-              <div className="flex items-center gap-4">
-                <span className="text-gray-600 font-medium w-20">Reference:</span>
-                <input
-                  className={`border border-gray-300 rounded px-2 py-0.5 w-56 font-mono text-sm focus:outline-none focus:border-red-400 ${hl('reference')}`}
-                  value={bitField.reference}
-                  placeholder="register_0.bit_field_0"
-                  onChange={e => onChange({ reference: e.target.value })}
-                />
+
+              {canPerElement && (
+                <div className="flex flex-col gap-1">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={bitField.perElementInit}
+                      onChange={e => handlePerElementInitChange(e.target.checked)}
+                      className="accent-red-700"
+                    />
+                    <span className="text-gray-600 font-medium">Init Values (per element)</span>
+                  </label>
+                  {usePerElement && (
+                    <div className={`flex flex-wrap gap-2 ml-4 ${highlightedProperty === 'initialValue' ? ADV_HL : ''}`}>
+                      {Array.from({ length: regTotalElements }, (_, i) => (
+                        <label key={i} className="flex items-center gap-1">
+                          <span className="text-gray-400 text-xs w-10 text-right">[{i}]</span>
+                          <input
+                            className={`border border-gray-300 rounded px-2 py-0.5 w-28 font-mono text-xs focus:outline-none focus:border-red-400 ${
+                              perElementDisabled ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : ''
+                            }`}
+                            value={Array.isArray(bitField.initialValue) ? (bitField.initialValue[i] ?? '') : ''}
+                            placeholder={perElementDisabled ? '(parameterized)' : bitField.sequenceSize ? '0, 1, ...' : '0'}
+                            disabled={perElementDisabled}
+                            onChange={e => handlePerElementChange(i, e.target.value)}
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="flex flex-col gap-1">
+                <span className="text-gray-600 font-medium">Reference:</span>
+                <div className="ml-4">
+                  <input
+                    className={`border border-gray-300 rounded px-2 py-0.5 w-56 font-mono text-sm focus:outline-none focus:border-red-400 ${hl('reference')}`}
+                    value={bitField.reference}
+                    placeholder="register_0.bit_field_0"
+                    onChange={e => onChange({ reference: e.target.value })}
+                  />
+                </div>
               </div>
               {bitField.type === 'custom' && (
                 <div className="flex flex-col gap-2">

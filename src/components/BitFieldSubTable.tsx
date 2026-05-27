@@ -8,16 +8,24 @@ interface Props {
   onAddBitField: () => void;
   onDeleteBitField: (bfId: string) => void;
   onUpdateBitField: (bfId: string, updates: Partial<BitField>) => void;
-  onHelpClick?: () => void;
+  registerArraySize?: string;
 }
 
 const th = 'px-2 py-1 text-xs font-medium text-gray-500 text-left border-r border-gray-200 bg-gray-100';
 
+function calcTotalElements(arraySize: string | undefined): number {
+  if (!arraySize?.trim()) return 1;
+  return arraySize.split(',').map(s => s.trim()).filter(Boolean)
+    .reduce((acc, d) => acc * (parseInt(d, 10) || 1), 1);
+}
+
 export function BitFieldSubTable({
   register, errorBitFieldId, highlightedBfProperty,
   onAddBitField, onDeleteBitField, onUpdateBitField,
-  onHelpClick,
+  registerArraySize,
 }: Props) {
+  const regTotalElements = calcTotalElements(registerArraySize);
+
   return (
     <tr>
       <td colSpan={7} className="p-0 bg-gray-50">
@@ -44,7 +52,7 @@ export function BitFieldSubTable({
                   highlightedProperty={bf.id === errorBitFieldId ? highlightedBfProperty : undefined}
                   onChange={updates => onUpdateBitField(bf.id, updates)}
                   onDelete={() => onDeleteBitField(bf.id)}
-                  onHelpClick={onHelpClick}
+                  regTotalElements={regTotalElements}
                 />
               ))}
             </tbody>

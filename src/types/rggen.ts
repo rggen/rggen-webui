@@ -48,8 +48,9 @@ export interface BitField {
   lsb: string;
   width: string;
   type: BitFieldType;
-  initialValue: string;
+  initialValue: string | string[];
   parameterize: boolean;
+  perElementInit: boolean;
   comment: string;
   reference: string;
   sequenceSize: string;
