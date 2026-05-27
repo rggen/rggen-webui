@@ -20,7 +20,7 @@ export interface HelpSection {
   items: HelpItem[];
 }
 
-function f(label: string, description: string): HelpField {
+function f(label: string, description: string | string[]): HelpField {
   return { kind: 'field', label, description };
 }
 
