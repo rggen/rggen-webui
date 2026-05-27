@@ -8,6 +8,8 @@ import { ConfigSettings } from './components/ConfigSettings';
 import { RegisterTable } from './components/RegisterTable';
 import { YamlPreviewModal } from './components/YamlPreviewModal';
 import { IntegrationGuideModal } from './components/IntegrationGuideModal';
+import { HelpPanel } from './components/HelpPanel';
+import type { HelpLevel } from './utils/helpContent';
 import {
   generateBlockYaml, generateConfigYaml,
   generateBlockYamlWithSourceMap, generateConfigYamlWithSourceMap,
@@ -30,6 +32,13 @@ export default function App() {
   const [showIntegrationGuide, setShowIntegrationGuide] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
   const [showSampleMenu, setShowSampleMenu] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [helpLevel, setHelpLevel] = useState<HelpLevel>('config');
+
+  const openHelp = (level: HelpLevel) => {
+    setHelpLevel(level);
+    setShowHelp(true);
+  };
   const versionsRef = useRef<HTMLDivElement>(null);
   const sampleMenuRef = useRef<HTMLDivElement>(null);
 
@@ -108,7 +117,7 @@ export default function App() {
   if (!state.activeBlock) return null;
 
   return (
-    <div className="h-screen flex flex-col bg-white text-gray-900">
+    <div className="h-screen flex flex-col bg-white text-gray-900 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-red-200 shrink-0">
         <div className="flex items-center gap-3">
@@ -194,6 +203,12 @@ export default function App() {
             Integration Guide
           </button>
           <button
+            className={`px-3 py-1 border text-sm rounded ${showHelp ? 'border-red-400 text-red-700 bg-red-50' : 'border-gray-300 text-gray-500 hover:border-red-400 hover:text-red-700'}`}
+            onClick={() => setShowHelp(v => !v)}
+          >
+            Help
+          </button>
+          <button
             className="px-3 py-1 border border-red-300 hover:border-red-500 text-red-700 hover:text-red-900 text-sm rounded"
             onClick={handleDownload}
           >
@@ -207,48 +222,6 @@ export default function App() {
             {generateLabel}
           </button>
         </div>
-      </div>
-
-      {/* Error banner */}
-      {wasm.error && (
-        <div className="shrink-0 flex items-start gap-2 px-4 py-2 bg-red-50 border-b border-red-200 text-red-800 text-sm">
-          <pre className="flex-1 whitespace-pre-wrap font-mono text-xs">{wasm.error}</pre>
-          <button
-            className="shrink-0 text-red-400 hover:text-red-700 leading-none text-base"
-            onClick={wasm.clearError}
-          >×</button>
-        </div>
-      )}
-
-      {/* Config settings */}
-      <div className="shrink-0">
-        <ConfigSettings
-          config={state.config}
-          onChange={state.updateConfig}
-          onImport={state.importConfigFile}
-          highlightedField={errorLoc?.kind === 'config' ? errorLoc.configField : undefined}
-        />
-      </div>
-
-      {/* Block tabs */}
-      <div className="shrink-0">
-        <BlockTabs
-          blocks={state.blocks}
-          activeBlockId={state.activeBlockId}
-          onSelect={state.setActiveBlockId}
-          onAdd={state.addBlock}
-          onDelete={state.deleteBlock}
-          onImport={(files) => state.importBlockFile(files)}
-        />
-      </div>
-
-      {/* Block settings */}
-      <div className="shrink-0">
-        <BlockSettings
-          block={state.activeBlock}
-          onChange={updates => state.updateBlock(state.activeBlockId, updates)}
-          highlightedField={errorLoc?.kind === 'block' && errorLoc.blockId === state.activeBlock.id ? errorLoc.blockProperty : undefined}
-        />
       </div>
 
       {/* Integration Guide modal */}
@@ -265,23 +238,80 @@ export default function App() {
         />
       )}
 
-      {/* Register table */}
-      <RegisterTable
-        block={state.activeBlock}
-        errorLoc={errorLoc}
-        onAddRegister={() => state.addRegister(state.activeBlockId)}
-        onDeleteRegister={regId => state.deleteRegister(state.activeBlockId, regId)}
-        onUpdateRegister={(regId, updates) => state.updateRegister(state.activeBlockId, regId, updates)}
-        onToggleExpanded={regId => state.toggleExpanded(state.activeBlockId, regId)}
-        onExpandAll={() => state.expandAll(state.activeBlockId)}
-        onCollapseAll={() => state.collapseAll(state.activeBlockId)}
-        onAddBitField={regId => state.addBitField(state.activeBlockId, regId)}
-        onDeleteBitField={(regId, bfId) => state.deleteBitField(state.activeBlockId, regId, bfId)}
-        onUpdateBitField={(regId, bfId, updates) => state.updateBitField(state.activeBlockId, regId, bfId, updates)}
-        onAddQualifier={regId => state.addQualifier(state.activeBlockId, regId)}
-        onDeleteQualifier={(regId, qId) => state.deleteQualifier(state.activeBlockId, regId, qId)}
-        onUpdateQualifier={(regId, qId, updates) => state.updateQualifier(state.activeBlockId, regId, qId, updates)}
-      />
+      {/* Main area */}
+      <div className="flex flex-1 min-h-0">
+        {/* Left: editor */}
+        <div className="flex flex-col flex-1 min-w-0">
+          {/* Error banner */}
+          {wasm.error && (
+            <div className="shrink-0 flex items-start gap-2 px-4 py-2 bg-red-50 border-b border-red-200 text-red-800 text-sm">
+              <pre className="flex-1 whitespace-pre-wrap font-mono text-xs">{wasm.error}</pre>
+              <button
+                className="shrink-0 text-red-400 hover:text-red-700 leading-none text-base"
+                onClick={wasm.clearError}
+              >×</button>
+            </div>
+          )}
+
+          {/* Config settings */}
+          <div className="shrink-0">
+            <ConfigSettings
+              config={state.config}
+              onChange={state.updateConfig}
+              onImport={state.importConfigFile}
+              highlightedField={errorLoc?.kind === 'config' ? errorLoc.configField : undefined}
+              onHelpClick={() => openHelp('config')}
+            />
+          </div>
+
+          {/* Block tabs */}
+          <div className="shrink-0">
+            <BlockTabs
+              blocks={state.blocks}
+              activeBlockId={state.activeBlockId}
+              onSelect={state.setActiveBlockId}
+              onAdd={state.addBlock}
+              onDelete={state.deleteBlock}
+              onImport={(files) => state.importBlockFile(files)}
+            />
+          </div>
+
+          {/* Block settings */}
+          <div className="shrink-0">
+            <BlockSettings
+              block={state.activeBlock}
+              onChange={updates => state.updateBlock(state.activeBlockId, updates)}
+              highlightedField={errorLoc?.kind === 'block' && errorLoc.blockId === state.activeBlock.id ? errorLoc.blockProperty : undefined}
+              onHelpClick={() => openHelp('block')}
+            />
+          </div>
+
+          {/* Register table */}
+          <RegisterTable
+            block={state.activeBlock}
+            errorLoc={errorLoc}
+            onAddRegister={() => state.addRegister(state.activeBlockId)}
+            onDeleteRegister={regId => state.deleteRegister(state.activeBlockId, regId)}
+            onUpdateRegister={(regId, updates) => state.updateRegister(state.activeBlockId, regId, updates)}
+            onToggleExpanded={regId => state.toggleExpanded(state.activeBlockId, regId)}
+            onExpandAll={() => state.expandAll(state.activeBlockId)}
+            onCollapseAll={() => state.collapseAll(state.activeBlockId)}
+            onAddBitField={regId => state.addBitField(state.activeBlockId, regId)}
+            onDeleteBitField={(regId, bfId) => state.deleteBitField(state.activeBlockId, regId, bfId)}
+            onUpdateBitField={(regId, bfId, updates) => state.updateBitField(state.activeBlockId, regId, bfId, updates)}
+            onAddQualifier={regId => state.addQualifier(state.activeBlockId, regId)}
+            onDeleteQualifier={(regId, qId) => state.deleteQualifier(state.activeBlockId, regId, qId)}
+            onUpdateQualifier={(regId, qId, updates) => state.updateQualifier(state.activeBlockId, regId, qId, updates)}
+            onRegisterHelpClick={() => openHelp('register')}
+            onBitFieldHelpClick={() => openHelp('bitfield')}
+          />
+        </div>
+
+        {/* Right: Help panel */}
+        {showHelp && (
+          <HelpPanel level={helpLevel} onClose={() => setShowHelp(false)} />
+        )}
+      </div>
     </div>
   );
 }

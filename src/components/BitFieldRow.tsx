@@ -8,12 +8,13 @@ interface Props {
   highlightedProperty?: keyof BitField;
   onChange: (updates: Partial<BitField>) => void;
   onDelete: () => void;
+  onHelpClick?: () => void;
 }
 
 const td = 'px-2 py-1 border-r border-gray-200 text-sm';
 const CELL_HL = 'outline outline-2 outline-red-500';
 
-export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChange, onDelete }: Props) {
+export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChange, onDelete, onHelpClick }: Props) {
   const rowRef = useRef<HTMLTableRowElement>(null);
   const noInitVal = NO_INITIAL_VALUE_TYPES.has(bitField.type);
 
@@ -37,7 +38,8 @@ export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChan
     <>
       <tr
         ref={rowRef}
-        className={`border-b border-gray-100 hover:bg-gray-100 ${highlighted ? 'bg-red-100 hover:bg-red-100' : 'bg-gray-50'}`}
+        className={`border-b border-gray-100 hover:bg-gray-100 cursor-pointer ${highlighted ? 'bg-red-100 hover:bg-red-100' : 'bg-gray-50'}`}
+        onClick={onHelpClick}
       >
         <td className="px-2 py-1 w-20 text-center">
           <button
@@ -115,7 +117,7 @@ export function BitFieldRow({ bitField, highlighted, highlightedProperty, onChan
       </tr>
 
       {bitField.showAdvanced && (
-        <tr className={`border-b border-gray-100 ${highlighted ? 'bg-red-50' : 'bg-red-50'}`}>
+        <tr className={`border-b border-gray-100 cursor-pointer ${highlighted ? 'bg-red-50' : 'bg-red-50'}`} onClick={onHelpClick}>
           <td colSpan={8} className="px-8 py-2">
             <div className="flex flex-col gap-2 text-sm">
               <div className="flex items-center gap-4">

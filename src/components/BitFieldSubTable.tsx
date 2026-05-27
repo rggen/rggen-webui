@@ -8,6 +8,7 @@ interface Props {
   onAddBitField: () => void;
   onDeleteBitField: (bfId: string) => void;
   onUpdateBitField: (bfId: string, updates: Partial<BitField>) => void;
+  onHelpClick?: () => void;
 }
 
 const th = 'px-2 py-1 text-xs font-medium text-gray-500 text-left border-r border-gray-200 bg-gray-100';
@@ -15,6 +16,7 @@ const th = 'px-2 py-1 text-xs font-medium text-gray-500 text-left border-r borde
 export function BitFieldSubTable({
   register, errorBitFieldId, highlightedBfProperty,
   onAddBitField, onDeleteBitField, onUpdateBitField,
+  onHelpClick,
 }: Props) {
   return (
     <tr>
@@ -42,6 +44,7 @@ export function BitFieldSubTable({
                   highlightedProperty={bf.id === errorBitFieldId ? highlightedBfProperty : undefined}
                   onChange={updates => onUpdateBitField(bf.id, updates)}
                   onDelete={() => onDeleteBitField(bf.id)}
+                  onHelpClick={onHelpClick}
                 />
               ))}
             </tbody>
