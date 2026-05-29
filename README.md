@@ -3,6 +3,8 @@
 A browser-based CSR definition tool for [RgGen](https://github.com/rggen/rggen).
 No server required — runs entirely in the browser.
 
+![demo](public/demo.gif)
+
 ## Features
 
 - Define register blocks, registers, and bit fields via an interactive table UI
