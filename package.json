@@ -12,7 +12,7 @@
   "dependencies": {
     "@ruby/4.0-wasm-wasi": "~2.9.3-2.9.4",
     "@types/js-yaml": "~4.0.9",
-    "js-yaml": "~4.2.0",
+    "js-yaml": "~5.1.0",
     "jszip": "~3.10.1",
     "react": "~19.2.7",
     "react-dom": "~19.2.7"
