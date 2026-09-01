@@ -5,7 +5,7 @@ GEM
     docile (1.4.1)
     erubi (1.13.1)
     facets (3.2.0)
-    js (2.9.4)
+    js (2.10.1)
     logger (1.7.0)
     racc (1.8.1)
     rggen-c-header (0.7.0)
@@ -70,7 +70,7 @@ CHECKSUMS
   docile (1.4.1) sha256=96159be799bfa73cdb721b840e9802126e4e03dfc26863db73647204c727f21e
   erubi (1.13.1) sha256=a082103b0885dbc5ecf1172fede897f9ebdb745a4b97a5e8dc63953db1ee4ad9
   facets (3.2.0) sha256=b2943f660df184e85b1070131c321591bb3e855dafcaf176e4439a89ef214158
-  js (2.9.4) sha256=f969cf2054cf5eb505f51ec0db0b7f72c6ef6b52c828a48e437ed77488def5af
+  js (2.10.1) sha256=c5fb88c60ea936234f818ff240f2ab0c42a57c25ab9b575211fcc4d702d059fb
   logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
   racc (1.8.1) sha256=4a7f6929691dbec8b5209a0b373bc2614882b55fc5d2e447a21aaa691303d62f
   rggen-c-header (0.7.0) sha256=7823746ddbc4e801ffc480c5169e82b46e99437a2311e2590330687a11516e9c
