@@ -2,7 +2,7 @@
 
 source 'https://rubygems.org'
 
-gem 'ruby_wasm', '~> 2.9'
+gem 'ruby_wasm', '~> 2.10'
 gem 'js'
 gem 'base64'
 gem 'racc'
