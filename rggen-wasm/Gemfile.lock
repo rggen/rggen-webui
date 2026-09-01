@@ -25,19 +25,19 @@ GEM
       rggen-systemverilog (>= 0.36.0)
     rggen-vhdl (0.13.0)
       rggen-systemverilog (>= 0.36.0)
-    ruby_wasm (2.9.4)
+    ruby_wasm (2.10.1)
       logger
-    ruby_wasm (2.9.4-aarch64-linux)
+    ruby_wasm (2.10.1-aarch64-linux)
       logger
-    ruby_wasm (2.9.4-aarch64-linux-musl)
+    ruby_wasm (2.10.1-aarch64-linux-musl)
       logger
-    ruby_wasm (2.9.4-arm64-darwin)
+    ruby_wasm (2.10.1-arm64-darwin)
       logger
-    ruby_wasm (2.9.4-x86_64-darwin)
+    ruby_wasm (2.10.1-x86_64-darwin)
       logger
-    ruby_wasm (2.9.4-x86_64-linux)
+    ruby_wasm (2.10.1-x86_64-linux)
       logger
-    ruby_wasm (2.9.4-x86_64-linux-musl)
+    ruby_wasm (2.10.1-x86_64-linux-musl)
       logger
     tomlrb (2.0.4)
     yps (1.0.0)
@@ -63,7 +63,7 @@ DEPENDENCIES
   rggen-verilog (~> 0.14.0)
   rggen-veryl (~> 0.8.0)
   rggen-vhdl (~> 0.13.0)
-  ruby_wasm (~> 2.9)
+  ruby_wasm (~> 2.10)
 
 CHECKSUMS
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
@@ -81,13 +81,13 @@ CHECKSUMS
   rggen-verilog (0.14.0) sha256=d89f715d899b996315fb3d9adce1b643b5ba3e70e3918486f40eb311180fad85
   rggen-veryl (0.8.0) sha256=bd2eb25c42e78b8ce1860e8dc573e9e59be21cb60952d27104ac63ad978db411
   rggen-vhdl (0.13.0) sha256=e4cb16203d5e8671192eef9529902e836ae8908e377be63cc8b17621d0096344
-  ruby_wasm (2.9.4) sha256=a25481a0d92ca9bf74354260c3de85c619b08da84f6f77b5605b155120ca1a4c
-  ruby_wasm (2.9.4-aarch64-linux) sha256=ce71254c62c7f18cfde319c81e08cb16c260e698cc3f613d03e3377ca1c842d0
-  ruby_wasm (2.9.4-aarch64-linux-musl) sha256=c263aa07e864a159c58ea5fc72f47fd3507953dacea14192c4f9f0e5446c9ba1
-  ruby_wasm (2.9.4-arm64-darwin) sha256=e124b2b68d26b9f8c29873e76e189d29584febce0031285176aca42cf313d05e
-  ruby_wasm (2.9.4-x86_64-darwin) sha256=f9bf6860beb268c3375d91fd085be2f309a6bd80a21ae4768b2533fb042a589b
-  ruby_wasm (2.9.4-x86_64-linux) sha256=0d5e19430745742c09f35167d58586ce68c7f124090c722b8e4f9c21b6adc943
-  ruby_wasm (2.9.4-x86_64-linux-musl) sha256=05eba60cfb90b2e69068b4bc0b7a2ac74031c9387b4cd3d8094487b161bc31d7
+  ruby_wasm (2.10.1) sha256=874e0acb783a8326bfb0db892004816c26963a4276a9f719791a8828e53a05f1
+  ruby_wasm (2.10.1-aarch64-linux) sha256=133ab6ad86ff2942a4dd187ae2af87a42bbb31b42fd1ac82f738cbf658649c17
+  ruby_wasm (2.10.1-aarch64-linux-musl) sha256=b92cfb5168d95837fb051c29e395c65129ef469ddd557f498948d1f20eb5bab7
+  ruby_wasm (2.10.1-arm64-darwin) sha256=f106a9b4d8b273592471005460f8c54d89a8913e4fecb9dbab3bd3fc8c20bbc6
+  ruby_wasm (2.10.1-x86_64-darwin) sha256=40291bed5b48c858317a31437e59d56091edda2f2c498b532238eda4cbf044d4
+  ruby_wasm (2.10.1-x86_64-linux) sha256=728e29dc688246572b56dcef1c7b131431d07865320c9b8434dd1ccdfd63db2b
+  ruby_wasm (2.10.1-x86_64-linux-musl) sha256=c4d16572f9a465e460490d0608e817239c5e0ddfc9553f18db2bcaebecbcdd8d
   tomlrb (2.0.4) sha256=262f77947ac3ac9b3366a0a5940ecd238300c553e2e14f22009e2afcd2181b99
   yps (1.0.0) sha256=460b9f8ed142c417735e57fc472b0898fa889f91c10eea16f32906c5c84dce21
 
