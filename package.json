@@ -14,8 +14,8 @@
     "@types/js-yaml": "~4.0.9",
     "js-yaml": "~5.4.2",
     "jszip": "~3.10.1",
-    "react": "~19.3.0",
-    "react-dom": "~19.3.0"
+    "react": "~19.3.1",
+    "react-dom": "~19.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
